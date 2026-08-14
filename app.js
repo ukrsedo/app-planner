@@ -204,13 +204,62 @@
     saveState(); render();
   }
 
+  function fillTemplate(str,vars){ return String(str).replace(/\{(\w+)\}/g,(_,k)=>vars[k]??''); }
+
+  function topCounts(rows,keyFn,limit=3){
+    const counts=new Map(); rows.forEach(r=>{const k=keyFn(r);counts.set(k,(counts.get(k)||0)+1)});
+    return [...counts.entries()].sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0]))).slice(0,limit);
+  }
+
+  function renderBars(items,labelFn){
+    if(!items.length) return `<div class="review-empty">${t('noUpcomingItems')}</div>`;
+    const max=Math.max(...items.map(x=>x[1]),1);
+    return `<div class="review-bars">${items.map(([key,count])=>`<div class="review-bar-row"><div class="review-bar-label" title="${escapeHtml(labelFn(key))}">${escapeHtml(labelFn(key))}</div><div class="review-bar-track"><div class="review-bar-fill" style="width:${Math.round(count/max*100)}%"></div></div><div class="review-bar-value">${count}</div></div>`).join('')}</div>`;
+  }
+
+  function renderManagementReview(rows){
+    const root=document.getElementById('managementReview'); if(!root)return;
+    const immediate=rows.filter(r=>r.status==='overdue'||r.status==='required').sort((a,b)=>a.daysRemaining-b.daysRemaining||b.estimatedValue-a.estimatedValue);
+    const p030=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=30);
+    const p3160=rows.filter(r=>r.daysRemaining>=31&&r.daysRemaining<=60);
+    const p6190=rows.filter(r=>r.daysRemaining>=61&&r.daysRemaining<=90);
+    const next180=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=180);
+    const deptTop=topCounts(next180,r=>r.department,3);
+    const catTop=topCounts(next180,r=>r.segment,3);
+    const opportunities=detectAggregation(rows);
+    let pending=0,approved=0,rejected=0,deferred=0;
+    opportunities.forEach(o=>{const d=aggregationDecisions.get(o.key)?.decision||'pending'; if(d==='approved')approved++;else if(d==='rejected')rejected++;else if(d==='deferred')deferred++;else pending++;});
+    const highValue=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5);
+    const emergency=rows.filter(r=>r.criticality==='emergency');
+    const urgent=rows.filter(r=>r.criticality==='urgent');
+    const regular=rows.filter(r=>r.criticality==='regular');
+    const critical180=next180.filter(r=>r.criticality==='emergency'||r.criticality==='urgent').length;
+    const immediateHtml=immediate.length?`<div class="review-list">${immediate.slice(0,5).map(r=>`<div class="review-item"><div><strong>${escapeHtml(r.title)}</strong><span>${escapeHtml(t('departments')[r.department])} · ${statusLabel(r.status)} · ${t('startingIn')} ${r.daysRemaining} ${t('daysUnit')}</span></div><div class="review-value">${money(r.estimatedValue,r.currency)}</div></div>`).join('')}</div>`:`<div class="review-empty">${t('noImmediatePriorities')}</div>`;
+    const highValueHtml=highValue.length?`<div class="review-list">${highValue.map(r=>`<div class="review-item"><div><strong>${escapeHtml(r.title)}</strong><span>${escapeHtml(t('departments')[r.department])} · ${fmtDate(r.requiredStart)}</span></div><div class="review-value">${money(r.estimatedValue,r.currency)}</div></div>`).join('')}</div>`:`<div class="review-empty">${t('noUpcomingItems')}</div>`;
+    const obs=[];
+    const overdue=rows.filter(r=>r.status==='overdue').length, required=rows.filter(r=>r.status==='required').length;
+    if(immediate.length) obs.push(fillTemplate(t('observationImmediate'),{count:immediate.length,overdue,required})); else obs.push(t('observationNoImmediate'));
+    obs.push(fillTemplate(t('observationPipeline'),{count:p030.length+p3160.length+p6190.length}));
+    if(deptTop.length) obs.push(fillTemplate(t('observationConcentration'),{department:t('departments')[deptTop[0][0]],count:deptTop[0][1]}));
+    obs.push(pending?fillTemplate(t('observationAggregation'),{count:pending}):t('observationAggregationClear'));
+    if(critical180) obs.push(fillTemplate(t('observationCriticality'),{count:critical180}));
+    root.innerHTML=`
+      <article class="management-card"><h3>${t('immediatePriorities')}</h3>${immediateHtml}</article>
+      <article class="management-card"><h3>${t('pipelineReview')}</h3><div class="review-kpi-row"><div class="review-kpi"><span>${t('days030')}</span><strong>${p030.length}</strong></div><div class="review-kpi"><span>${t('days3160')}</span><strong>${p3160.length}</strong></div><div class="review-kpi"><span>${t('days6190')}</span><strong>${p6190.length}</strong></div></div></article>
+      <article class="management-card"><h3>${t('workloadConcentration')}</h3><div class="review-sub">${t('topDepartments')} · ${t('next180')}</div>${renderBars(deptTop,k=>t('departments')[k])}<div class="review-sub" style="margin-top:18px">${t('topCategories')} · ${t('next180')}</div>${renderBars(catTop,k=>t('segments')[k])}</article>
+      <article class="management-card"><h3>${t('aggregationReview')}</h3><div class="review-kpi-row"><div class="review-kpi"><span>${t('pendingReview')}</span><strong>${pending}</strong></div><div class="review-kpi"><span>${t('approvedReview')}</span><strong>${approved}</strong></div><div class="review-kpi"><span>${t('deferredReview')}</span><strong>${deferred}</strong></div></div><div class="review-kpi-row"><div class="review-kpi"><span>${t('rejectedReview')}</span><strong>${rejected}</strong></div></div></article>
+      <article class="management-card"><h3>${t('highValueReview')}</h3>${highValueHtml}</article>
+      <article class="management-card"><h3>${t('criticalityReview')}</h3><div class="review-kpi-row"><div class="review-kpi"><span>${t('emergencyReq')}</span><strong>${emergency.length}</strong></div><div class="review-kpi"><span>${t('urgentReq')}</span><strong>${urgent.length}</strong></div><div class="review-kpi"><span>${t('regularReq')}</span><strong>${regular.length}</strong></div></div></article>
+      <article class="management-card wide"><h3>${t('planningObservations')}</h3><ul class="observation-list">${obs.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></article>`;
+  }
+
   function renderActivity(){
     const list=document.getElementById('activityList'),empty=document.getElementById('activityEmpty');
     empty.classList.toggle('hidden',activityLog.length>0);
     const actionKey={added:'activityAdded',edited:'activityEdited',deleted:'activityDeleted',approved:'activityApproved',rejected:'activityRejected',deferred:'activityDeferred',reset:'activityReset'};
     list.innerHTML=activityLog.map(x=>`<div class="activity-item"><div class="activity-time">${new Intl.DateTimeFormat(lang==='uk'?'uk-UA':lang==='pt'?'pt-PT':'en-GB',{dateStyle:'medium',timeStyle:'short'}).format(new Date(x.ts))}</div><div class="activity-action">${escapeHtml(t(actionKey[x.action]||x.action))}</div><div class="activity-detail">${escapeHtml(x.detail||'')}</div></div>`).join('');
   }
-  function render(){ const rows=calculated(); renderKpis(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); }
+  function render(){ const rows=calculated(); renderKpis(rows); renderManagementReview(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); }
 
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r)return; editingId=id;

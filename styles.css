@@ -16,3 +16,30 @@
 .row-actions{display:flex;gap:.35rem;white-space:nowrap}.row-actions button{padding:.35rem .55rem;font-size:.78rem}
 .activity-list{display:grid;gap:.55rem}.activity-item{display:grid;grid-template-columns:160px 120px 1fr;gap:.75rem;align-items:start;padding:.7rem .8rem;border:1px solid #e2e8f0;border-radius:10px;background:#fff}.activity-time{font-size:.8rem;color:#64748b}.activity-action{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}.activity-detail{font-size:.9rem}.activity-section .section-head{align-items:center}
 @media(max-width:760px){.activity-item{grid-template-columns:1fr}.activity-time{order:3}}
+
+/* Step 4 — Management Review */
+.management-review{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.management-card{border:1px solid #d7e2ec;border-radius:14px;padding:18px;background:#fff;min-width:0}
+.management-card.wide{grid-column:1/-1}
+.management-card h3{margin:0 0 12px;font-size:1.05rem;color:#17324d}
+.management-card .review-sub{margin:-6px 0 14px;color:#64748b;font-size:.9rem}
+.review-kpi-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.review-kpi{border:1px solid #e2e8f0;border-radius:10px;padding:12px;min-width:0}
+.review-kpi span{display:block;color:#64748b;font-size:.78rem;margin-bottom:5px}
+.review-kpi strong{font-size:1.35rem;color:#17324d;overflow-wrap:anywhere}
+.review-list{display:flex;flex-direction:column;gap:8px}
+.review-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:10px 0;border-top:1px solid #edf2f7}
+.review-item:first-child{border-top:0;padding-top:0}
+.review-item strong{display:block;color:#17324d}
+.review-item span{display:block;color:#64748b;font-size:.82rem;margin-top:3px}
+.review-item .review-value{text-align:right;color:#17324d;font-weight:700;white-space:nowrap}
+.review-bars{display:flex;flex-direction:column;gap:10px}
+.review-bar-row{display:grid;grid-template-columns:minmax(120px,1fr) 2fr auto;gap:10px;align-items:center}
+.review-bar-label{font-size:.86rem;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.review-bar-track{height:9px;background:#edf2f7;border-radius:999px;overflow:hidden}
+.review-bar-fill{height:100%;background:#64748b;border-radius:999px}
+.review-bar-value{font-size:.82rem;font-weight:700;color:#17324d;min-width:28px;text-align:right}
+.observation-list{margin:0;padding-left:20px;color:#334155}
+.observation-list li{margin:0 0 9px;line-height:1.45}
+.review-empty{color:#64748b;font-size:.9rem}
+@media(max-width:900px){.management-review{grid-template-columns:1fr}.management-card.wide{grid-column:auto}.review-kpi-row{grid-template-columns:1fr}.review-bar-row{grid-template-columns:minmax(100px,1fr) 1.3fr auto}}
