@@ -72,9 +72,19 @@
     sf.value=oldS;df.value=oldD;
   }
 
+  function getPipeline90(rows){
+    const all=rows.filter(r=>Number.isFinite(r.daysRemaining)&&r.daysRemaining>=0&&r.daysRemaining<=90);
+    return {
+      all,
+      days0to30:all.filter(r=>r.daysRemaining<=30),
+      days31to60:all.filter(r=>r.daysRemaining>30&&r.daysRemaining<=60),
+      days61to90:all.filter(r=>r.daysRemaining>60&&r.daysRemaining<=90)
+    };
+  }
+
   function renderKpis(rows){
     const count=s=>rows.filter(r=>r.status===s).length;
-    const pipeline=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=90).length;
+    const pipeline=getPipeline90(rows).all.length;
     const byCurrency=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
     const totalText=Object.entries(byCurrency).map(([c,v])=>`<span>${money(v,c)}</span>`).join('');
     const data=[[t('totalReq'),rows.length,''],[t('overdue'),count('overdue'),'overdue'],[t('required'),count('required'),'required'],[t('planning'),count('planning'),'planning'],[t('pipeline90'),pipeline,''],[t('totalValue'),totalText,'total-value']];
@@ -220,9 +230,10 @@
   function renderManagementReview(rows){
     const root=document.getElementById('managementReview'); if(!root)return;
     const immediate=rows.filter(r=>r.status==='overdue'||r.status==='required').sort((a,b)=>a.daysRemaining-b.daysRemaining||b.estimatedValue-a.estimatedValue);
-    const p030=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=30);
-    const p3160=rows.filter(r=>r.daysRemaining>=31&&r.daysRemaining<=60);
-    const p6190=rows.filter(r=>r.daysRemaining>=61&&r.daysRemaining<=90);
+    const pipeline90=getPipeline90(rows);
+    const p030=pipeline90.days0to30;
+    const p3160=pipeline90.days31to60;
+    const p6190=pipeline90.days61to90;
     const next180=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=180);
     const deptTop=topCounts(next180,r=>r.department,3);
     const catTop=topCounts(next180,r=>r.segment,3);
@@ -255,10 +266,11 @@
 
   function buildAiReviewPayload(rows){
     const immediate=rows.filter(r=>r.status==='overdue'||r.status==='required');
+    const pipeline90=getPipeline90(rows);
     const pipeline={
-      days0to30:rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=30).length,
-      days31to60:rows.filter(r=>r.daysRemaining>=31&&r.daysRemaining<=60).length,
-      days61to90:rows.filter(r=>r.daysRemaining>=61&&r.daysRemaining<=90).length
+      days0to30:pipeline90.days0to30.length,
+      days31to60:pipeline90.days31to60.length,
+      days61to90:pipeline90.days61to90.length
     };
     const next180=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=180);
     const opportunities=detectAggregation(rows);
@@ -280,7 +292,7 @@
     });
     const topRequirements=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5).map(aiRequirement);
     const immediateAttentionRequirements=[...immediate].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
-    const pipeline90Requirements=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=90).sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
+    const pipeline90Requirements=[...pipeline90.all].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
     const urgentEmergencyRequirements=rows.filter(r=>r.criticality==='emergency'||r.criticality==='urgent').sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
     const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>({department:t('departments')[k],requirements:count}));
     const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>({category:t('segments')[k],requirements:count}));
