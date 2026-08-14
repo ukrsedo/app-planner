@@ -265,10 +265,23 @@
     const aggregation={pending:0,approved:0,rejected:0,deferred:0};
     opportunities.forEach(o=>{const d=aggregationDecisions.get(o.key)?.decision||'pending'; aggregation[d]=(aggregation[d]||0)+1;});
     const totalsByCurrency=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
-    const topRequirements=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5).map(r=>({
-      title:r.title,department:t('departments')[r.department],segment:t('segments')[r.segment],value:r.estimatedValue,currency:r.currency,
-      needByDate:r.needByDate,requiredProcurementStart:r.requiredStart,daysRemaining:r.daysRemaining,criticality:t('criticalities')[r.criticality]
-    }));
+    const aiRequirement=r=>({
+      id:r.id,
+      title:r.title,
+      department:t('departments')[r.department],
+      segment:t('segments')[r.segment],
+      value:r.estimatedValue,
+      currency:r.currency,
+      needByDate:r.needByDate,
+      requiredProcurementStart:r.requiredStart,
+      daysRemaining:r.daysRemaining,
+      status:r.status,
+      criticality:t('criticalities')[r.criticality]
+    });
+    const topRequirements=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5).map(aiRequirement);
+    const immediateAttentionRequirements=[...immediate].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
+    const pipeline90Requirements=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=90).sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
+    const urgentEmergencyRequirements=rows.filter(r=>r.criticality==='emergency'||r.criticality==='urgent').sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
     const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>({department:t('departments')[k],requirements:count}));
     const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>({category:t('segments')[k],requirements:count}));
     return {
@@ -285,7 +298,10 @@
         aggregation,
         topDepartments180Days:topDepartments,
         topCategories180Days:topCategories,
-        topUpcomingRequirements:topRequirements
+        topUpcomingRequirements:topRequirements,
+        immediateAttentionRequirements,
+        pipeline90Requirements,
+        urgentEmergencyRequirements
       }
     };
   }
