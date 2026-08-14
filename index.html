@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Annual Procurement Plan</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">GS</div>
+      <div>
+        <h1 data-i18n="appTitle"></h1>
+        <p data-i18n="appSubtitle"></p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="demo-badge" data-i18n="demoBadge"></span>
+      <div class="lang-switch" aria-label="Language">
+        <button data-lang="en" class="active">EN</button><button data-lang="uk">UA</button><button data-lang="pt">PT</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="notice" data-i18n="sampleNotice"></div>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 data-i18n="overview"></h2>
+        <label class="plan-date"><span data-i18n="planDate"></span><input type="date" id="planDate"></label>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2 data-i18n="procurementPlan"></h2></div>
+      <div class="toolbar">
+        <input id="searchBox" type="search" data-i18n-placeholder="search" />
+        <select id="statusFilter"></select>
+        <select id="departmentFilter"></select>
+        <button class="secondary" id="resetFilters" data-i18n="resetFilters"></button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="title"></th><th data-i18n="department"></th><th data-i18n="unspsc"></th><th data-i18n="value"></th><th data-i18n="needBy"></th><th data-i18n="channel"></th><th data-i18n="startDate"></th><th data-i18n="daysRemaining"></th><th data-i18n="status"></th>
+          </tr></thead>
+          <tbody id="planRows"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="empty hidden" data-i18n="noResults"></div>
+    </section>
+
+    <section class="section form-section">
+      <div class="section-head"><h2 data-i18n="addNew"></h2></div>
+      <form id="requirementForm">
+        <div class="form-grid">
+          <label><span data-i18n="title"></span><input name="title" required></label>
+          <label><span data-i18n="department"></span><select name="department" required></select></label>
+          <label class="span-2"><span data-i18n="description"></span><textarea name="description" rows="3" required></textarea></label>
+          <label><span data-i18n="unspsc"></span><select name="segment" required></select></label>
+          <label><span data-i18n="criticality"></span><select name="criticality" required></select></label>
+          <label><span data-i18n="value"></span><input name="estimatedValue" type="number" min="0" step="0.01" required></label>
+          <label><span data-i18n="currency"></span><select name="currency"><option>USD</option><option>EUR</option><option>GBP</option><option>UAH</option><option>AED</option></select></label>
+          <label><span data-i18n="needBy"></span><input name="needByDate" type="date" required></label>
+          <label><span data-i18n="channel"></span><select name="buyingChannel" required></select></label>
+          <label class="span-2"><span data-i18n="supplier"></span><input name="supplier"></label>
+        </div>
+        <div id="formMessage" class="form-message" aria-live="polite"></div>
+        <div class="form-actions"><button type="submit" class="primary" data-i18n="addButton"></button><button type="reset" class="secondary" data-i18n="cancel"></button></div>
+      </form>
+    </section>
+
+    <section class="section future">
+      <div class="section-head"><h2 data-i18n="aggregation"></h2><span class="step-badge">STEP 2</span></div>
+      <div class="future-card"><div class="future-icon">↗</div><p data-i18n="aggregationFuture"></p></div>
+    </section>
+  </main>
+  <footer data-i18n="footer"></footer>
+
+  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js"></script>
+</body>
+</html>
