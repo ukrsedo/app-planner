@@ -73,9 +73,17 @@
       </form>
     </section>
 
-    <section class="section future">
-      <div class="section-head"><h2 data-i18n="aggregation"></h2><span class="step-badge">STEP 2</span></div>
-      <div class="future-card"><div class="future-icon">↗</div><p data-i18n="aggregationFuture"></p></div>
+    <section class="section aggregation-section">
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="aggregation"></h2>
+          <p class="section-subtitle" data-i18n="aggregationIntro"></p>
+        </div>
+        <span class="step-badge">STEP 2</span>
+      </div>
+      <div class="aggregation-summary" id="aggregationSummary"></div>
+      <div class="aggregation-list" id="aggregationList"></div>
+      <div id="aggregationEmpty" class="empty hidden" data-i18n="noAggregation"></div>
     </section>
   </main>
   <footer data-i18n="footer"></footer>
