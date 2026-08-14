@@ -1,6 +1,8 @@
 window.APP_CONFIG = {
   defaultLanguage: 'en',
   defaultCurrency: 'AED',
+  aiEndpoint: '',
+  aiTimeoutMs: 45000,
   s2cDays: {
     publicRfp: 120,
     closed: 100,

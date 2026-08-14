@@ -253,13 +253,83 @@
       <article class="management-card wide"><h3>${t('planningObservations')}</h3><ul class="observation-list">${obs.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></article>`;
   }
 
+  function buildAiReviewPayload(rows){
+    const immediate=rows.filter(r=>r.status==='overdue'||r.status==='required');
+    const pipeline={
+      days0to30:rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=30).length,
+      days31to60:rows.filter(r=>r.daysRemaining>=31&&r.daysRemaining<=60).length,
+      days61to90:rows.filter(r=>r.daysRemaining>=61&&r.daysRemaining<=90).length
+    };
+    const next180=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=180);
+    const opportunities=detectAggregation(rows);
+    const aggregation={pending:0,approved:0,rejected:0,deferred:0};
+    opportunities.forEach(o=>{const d=aggregationDecisions.get(o.key)?.decision||'pending'; aggregation[d]=(aggregation[d]||0)+1;});
+    const totalsByCurrency=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
+    const topRequirements=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5).map(r=>({
+      title:r.title,department:t('departments')[r.department],segment:t('segments')[r.segment],value:r.estimatedValue,currency:r.currency,
+      needByDate:r.needByDate,requiredProcurementStart:r.requiredStart,daysRemaining:r.daysRemaining,criticality:t('criticalities')[r.criticality]
+    }));
+    const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>({department:t('departments')[k],requirements:count}));
+    const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>({category:t('segments')[k],requirements:count}));
+    return {
+      task:'Provide concise procurement-management commentary based only on the supplied calculated facts. Do not invent facts, approve aggregations, or modify the plan. Distinguish observed facts from recommendations.',
+      language:lang==='uk'?'Ukrainian':lang==='pt'?'Portuguese':'English',
+      planDate:planDateEl.value,
+      facts:{
+        totalRequirements:rows.length,
+        statuses:{overdue:rows.filter(r=>r.status==='overdue').length,actionRequired:rows.filter(r=>r.status==='required').length,planning:rows.filter(r=>r.status==='planning').length},
+        immediateAttention:immediate.length,
+        pipeline90:pipeline,
+        totalsByCurrency,
+        criticality:{emergency:rows.filter(r=>r.criticality==='emergency').length,urgent:rows.filter(r=>r.criticality==='urgent').length,regular:rows.filter(r=>r.criticality==='regular').length},
+        aggregation,
+        topDepartments180Days:topDepartments,
+        topCategories180Days:topCategories,
+        topUpcomingRequirements:topRequirements
+      }
+    };
+  }
+
+  function renderAiFacts(rows){
+    const box=document.getElementById('aiFacts'); if(!box)return;
+    box.innerHTML=`<h3>${escapeHtml(t('aiFactsHeading'))}</h3><pre>${escapeHtml(JSON.stringify(buildAiReviewPayload(rows),null,2))}</pre>`;
+  }
+
+  function renderAiText(text){
+    const root=document.getElementById('aiReviewOutput');
+    const clean=String(text||'').trim();
+    if(!clean){root.innerHTML=`<div class="review-empty">${escapeHtml(t('aiReviewEmpty'))}</div>`;return;}
+    const parts=clean.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    root.innerHTML=parts.map(x=>{
+      if(/^[-•]\s+/.test(x)) return `<ul><li>${escapeHtml(x.replace(/^[-•]\s+/,''))}</li></ul>`;
+      if(/^#{1,3}\s+/.test(x)) return `<h3>${escapeHtml(x.replace(/^#{1,3}\s+/,''))}</h3>`;
+      return `<p>${escapeHtml(x)}</p>`;
+    }).join('');
+  }
+
+  async function generateAiReview(){
+    const status=document.getElementById('aiStatus'), btn=document.getElementById('generateAiReview');
+    if(!cfg.aiEndpoint){status.textContent=t('aiNotConfigured');return;}
+    btn.disabled=true; status.textContent=t('aiGenerating');
+    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),cfg.aiTimeoutMs||45000);
+    try{
+      const response=await fetch(cfg.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildAiReviewPayload(calculated())),signal:controller.signal});
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data=await response.json();
+      const text=data.review ?? data.commentary ?? data.analysis ?? data.text ?? data.output;
+      if(typeof text!=='string'||!text.trim()) throw new Error('No review text returned');
+      renderAiText(text); status.textContent=t('aiGenerated');
+    }catch(err){console.error(err);status.textContent=t('aiError');}
+    finally{clearTimeout(timer);btn.disabled=false;}
+  }
+
   function renderActivity(){
     const list=document.getElementById('activityList'),empty=document.getElementById('activityEmpty');
     empty.classList.toggle('hidden',activityLog.length>0);
     const actionKey={added:'activityAdded',edited:'activityEdited',deleted:'activityDeleted',approved:'activityApproved',rejected:'activityRejected',deferred:'activityDeferred',reset:'activityReset'};
     list.innerHTML=activityLog.map(x=>`<div class="activity-item"><div class="activity-time">${new Intl.DateTimeFormat(lang==='uk'?'uk-UA':lang==='pt'?'pt-PT':'en-GB',{dateStyle:'medium',timeStyle:'short'}).format(new Date(x.ts))}</div><div class="activity-action">${escapeHtml(t(actionKey[x.action]||x.action))}</div><div class="activity-detail">${escapeHtml(x.detail||'')}</div></div>`).join('');
   }
-  function render(){ const rows=calculated(); renderKpis(rows); renderManagementReview(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); }
+  function render(){ const rows=calculated(); renderKpis(rows); renderManagementReview(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r)return; editingId=id;
@@ -294,5 +364,7 @@
   document.getElementById('requirementForm').addEventListener('reset',()=>{setTimeout(()=>{document.getElementById('formMessage').textContent='';endEdit()},0)});
   document.getElementById('resetPlan').addEventListener('click',()=>{if(!confirm(t('confirmReset')))return;requirements=window.SAMPLE_REQUIREMENTS.map(x=>({...x}));aggregationDecisions.clear();nextAggregationNo=1;editingId=null;logActivity('reset','');saveState();render();});
   document.getElementById('clearActivity').addEventListener('click',()=>{if(!confirm(t('confirmClearActivity')))return;activityLog=[];saveState();renderActivity();});
+  document.getElementById('generateAiReview').addEventListener('click',generateAiReview);
+  document.getElementById('showAiFacts').addEventListener('click',()=>{const box=document.getElementById('aiFacts'),btn=document.getElementById('showAiFacts');const willShow=box.classList.contains('hidden');box.classList.toggle('hidden',!willShow);btn.textContent=willShow?t('hideAiFacts'):t('showAiFacts');if(willShow)renderAiFacts(calculated());});
   applyTranslations();
 })();

@@ -182,7 +182,19 @@ window.I18N = {
     "activityRejected": "Aggregation rejected",
     "activityDeferred": "Aggregation deferred",
     "activityReset": "Plan reset",
-    "updated": "Requirement updated. Aggregation opportunities recalculated."
+    "updated": "Requirement updated. Aggregation opportunities recalculated.",
+    "aiReview": "AI Management Commentary",
+    "aiReviewIntro": "AI commentary is generated from calculated APP facts. It does not approve aggregation or modify the procurement plan.",
+    "generateAiReview": "Generate AI Review",
+    "showAiFacts": "Show facts sent to AI",
+    "hideAiFacts": "Hide AI facts",
+    "aiReviewEmpty": "No AI commentary has been generated yet.",
+    "aiGuardrail": "AI output is advisory only. Deterministic APP calculations, requirement records and management approvals remain the source of truth.",
+    "aiNotConfigured": "AI endpoint is not configured yet.",
+    "aiGenerating": "Generating management commentary…",
+    "aiError": "AI review could not be generated.",
+    "aiFactsHeading": "Structured facts supplied to AI",
+    "aiGenerated": "AI commentary generated from the current live plan."
   },
   "uk": {
     "appTitle": "Річний план закупівель",
@@ -367,7 +379,19 @@ window.I18N = {
     "activityRejected": "Агрегацію відхилено",
     "activityDeferred": "Агрегацію відкладено",
     "activityReset": "План скинуто",
-    "updated": "Потребу оновлено. Можливості агрегації перераховано."
+    "updated": "Потребу оновлено. Можливості агрегації перераховано.",
+    "aiReview": "Управлінський коментар AI",
+    "aiReviewIntro": "AI формує коментар лише на основі розрахованих фактів APP. Він не схвалює агрегацію та не змінює план закупівель.",
+    "generateAiReview": "Створити AI-огляд",
+    "showAiFacts": "Показати факти для AI",
+    "hideAiFacts": "Сховати факти AI",
+    "aiReviewEmpty": "AI-коментар ще не сформовано.",
+    "aiGuardrail": "Результат AI має рекомендаційний характер. Розрахунки APP, записи потреб та управлінські рішення залишаються джерелом істини.",
+    "aiNotConfigured": "AI endpoint ще не налаштовано.",
+    "aiGenerating": "Формується управлінський коментар…",
+    "aiError": "Не вдалося сформувати AI-огляд.",
+    "aiFactsHeading": "Структуровані факти, передані AI",
+    "aiGenerated": "AI-коментар сформовано на основі поточного динамічного плану."
   },
   "pt": {
     "appTitle": "Plano Anual de Compras",
@@ -552,6 +576,18 @@ window.I18N = {
     "activityRejected": "Agregação rejeitada",
     "activityDeferred": "Agregação adiada",
     "activityReset": "Plano reposto",
-    "updated": "Necessidade atualizada. Oportunidades de agregação recalculadas."
+    "updated": "Necessidade atualizada. Oportunidades de agregação recalculadas.",
+    "aiReview": "Comentário de Gestão por IA",
+    "aiReviewIntro": "O comentário de IA é gerado apenas a partir de factos calculados do APP. Não aprova agregações nem altera o plano de contratação.",
+    "generateAiReview": "Gerar Análise por IA",
+    "showAiFacts": "Mostrar factos enviados à IA",
+    "hideAiFacts": "Ocultar factos da IA",
+    "aiReviewEmpty": "Ainda não foi gerado qualquer comentário por IA.",
+    "aiGuardrail": "O resultado da IA é apenas consultivo. Os cálculos determinísticos do APP, os registos das necessidades e as aprovações de gestão continuam a ser a fonte de verdade.",
+    "aiNotConfigured": "O endpoint de IA ainda não está configurado.",
+    "aiGenerating": "A gerar comentário de gestão…",
+    "aiError": "Não foi possível gerar a análise por IA.",
+    "aiFactsHeading": "Factos estruturados enviados à IA",
+    "aiGenerated": "Comentário de IA gerado a partir do plano dinâmico atual."
   }
 };

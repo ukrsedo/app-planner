@@ -45,6 +45,26 @@
       <div id="managementReview" class="management-review"></div>
     </section>
 
+    <section class="section ai-review-section">
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="aiReview"></h2>
+          <p class="section-subtitle" data-i18n="aiReviewIntro"></p>
+        </div>
+        <span class="step-badge">STEP 5</span>
+      </div>
+      <div class="ai-review-toolbar">
+        <button class="primary" id="generateAiReview" data-i18n="generateAiReview"></button>
+        <button class="secondary" id="showAiFacts" data-i18n="showAiFacts"></button>
+        <span class="ai-status" id="aiStatus" aria-live="polite"></span>
+      </div>
+      <div id="aiFacts" class="ai-facts hidden"></div>
+      <div id="aiReviewOutput" class="ai-review-output">
+        <div class="review-empty" data-i18n="aiReviewEmpty"></div>
+      </div>
+      <div class="ai-guardrail" data-i18n="aiGuardrail"></div>
+    </section>
+
     <section class="section">
       <div class="section-head"><h2 data-i18n="procurementPlan"></h2></div>
       <div class="toolbar">
