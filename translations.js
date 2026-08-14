@@ -21,17 +21,26 @@ window.I18N = {
     "defer": "Defer",
     "implementedAs": "Implemented in the live plan as",
     "addedAggregationCheck": "Requirement added. Aggregation opportunities have been recalculated.",
-    "confidence": {"high":"High confidence","medium":"Medium confidence","review":"Review"},
-    "decision": {"pending":"Pending review","approved":"Approved","rejected":"Rejected","deferred":"Deferred"},
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "review": "Review"
+    },
+    "decision": {
+      "pending": "Pending review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "deferred": "Deferred"
+    },
     "aggregationReasons": {
-      "sameRequirement":"Same or equivalent requirement title",
-      "strongScope":"Strong scope similarity",
-      "relatedScope":"Related scope wording",
-      "sameSegment":"Same UNSPSC segment",
-      "timing60":"Need-by dates within 60 days",
-      "timing120":"Need-by dates within 120 days",
-      "sameDepartment":"Same department",
-      "sameSupplier":"Same known supplier / incumbent"
+      "sameRequirement": "Same or equivalent requirement title",
+      "strongScope": "Strong scope similarity",
+      "relatedScope": "Related scope wording",
+      "sameSegment": "Same UNSPSC segment",
+      "timing60": "Need-by dates within 60 days",
+      "timing120": "Need-by dates within 120 days",
+      "sameDepartment": "Same department",
+      "sameSupplier": "Same known supplier / incumbent"
     },
     "totalReq": "Total requirements",
     "overdue": "Action Overdue",
@@ -119,7 +128,28 @@ window.I18N = {
       "structuresAndBuildingAndConstructionAndManufacturingComponentsAndSupplies": "Structures and Building and Construction and Manufacturing Components and Supplies",
       "transportationAndStorageAndMailServices": "Transportation and Storage and Mail Services",
       "travelAndFoodAndLodgingAndEntertainmentServices": "Travel and Food and Lodging and Entertainment Services"
-    }
+    },
+    "resetPlan": "Reset sample plan",
+    "storedLocally": "Saved in this browser only",
+    "edit": "Edit",
+    "delete": "Delete",
+    "saveChanges": "Save changes",
+    "editRequirement": "Edit requirement",
+    "confirmDelete": "Delete this added requirement?",
+    "confirmReset": "Reset all added requirements and aggregation decisions to the original sample plan?",
+    "activityLog": "Activity log",
+    "activityIntro": "Changes made in this browser are recorded here and retained after refresh.",
+    "clearActivity": "Clear log",
+    "noActivity": "No changes recorded yet.",
+    "confirmClearActivity": "Clear the activity log?",
+    "activityAdded": "Added",
+    "activityEdited": "Edited",
+    "activityDeleted": "Deleted",
+    "activityApproved": "Aggregation approved",
+    "activityRejected": "Aggregation rejected",
+    "activityDeferred": "Aggregation deferred",
+    "activityReset": "Plan reset",
+    "updated": "Requirement updated. Aggregation opportunities recalculated."
   },
   "uk": {
     "appTitle": "Річний план закупівель",
@@ -143,17 +173,26 @@ window.I18N = {
     "defer": "Відкласти",
     "implementedAs": "Реалізовано в динамічному плані як",
     "addedAggregationCheck": "Потребу додано. Можливості агрегації перераховано.",
-    "confidence": {"high":"Висока впевненість","medium":"Середня впевненість","review":"Потребує перевірки"},
-    "decision": {"pending":"Очікує розгляду","approved":"Схвалено","rejected":"Відхилено","deferred":"Відкладено"},
+    "confidence": {
+      "high": "Висока впевненість",
+      "medium": "Середня впевненість",
+      "review": "Потребує перевірки"
+    },
+    "decision": {
+      "pending": "Очікує розгляду",
+      "approved": "Схвалено",
+      "rejected": "Відхилено",
+      "deferred": "Відкладено"
+    },
     "aggregationReasons": {
-      "sameRequirement":"Однакова або еквівалентна назва потреби",
-      "strongScope":"Висока подібність предмета закупівлі",
-      "relatedScope":"Пов’язане формулювання предмета закупівлі",
-      "sameSegment":"Однаковий сегмент UNSPSC",
-      "timing60":"Дати потреби в межах 60 днів",
-      "timing120":"Дати потреби в межах 120 днів",
-      "sameDepartment":"Один департамент",
-      "sameSupplier":"Один відомий постачальник / чинний постачальник"
+      "sameRequirement": "Однакова або еквівалентна назва потреби",
+      "strongScope": "Висока подібність предмета закупівлі",
+      "relatedScope": "Пов’язане формулювання предмета закупівлі",
+      "sameSegment": "Однаковий сегмент UNSPSC",
+      "timing60": "Дати потреби в межах 60 днів",
+      "timing120": "Дати потреби в межах 120 днів",
+      "sameDepartment": "Один департамент",
+      "sameSupplier": "Один відомий постачальник / чинний постачальник"
     },
     "totalReq": "Усього потреб",
     "overdue": "Дію прострочено",
@@ -241,7 +280,28 @@ window.I18N = {
       "structuresAndBuildingAndConstructionAndManufacturingComponentsAndSupplies": "Конструкції, будівельні та виробничі компоненти й матеріали",
       "transportationAndStorageAndMailServices": "Транспортні, складські та поштові послуги",
       "travelAndFoodAndLodgingAndEntertainmentServices": "Подорожі, харчування, проживання та розважальні послуги"
-    }
+    },
+    "resetPlan": "Скинути демонстраційний план",
+    "storedLocally": "Зберігається лише у цьому браузері",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "saveChanges": "Зберегти зміни",
+    "editRequirement": "Редагувати потребу",
+    "confirmDelete": "Видалити цю додану потребу?",
+    "confirmReset": "Скинути всі додані потреби та рішення щодо агрегації до початкового демонстраційного плану?",
+    "activityLog": "Журнал дій",
+    "activityIntro": "Зміни в цьому браузері фіксуються тут і зберігаються після оновлення сторінки.",
+    "clearActivity": "Очистити журнал",
+    "noActivity": "Змін ще не зафіксовано.",
+    "confirmClearActivity": "Очистити журнал дій?",
+    "activityAdded": "Додано",
+    "activityEdited": "Відредаговано",
+    "activityDeleted": "Видалено",
+    "activityApproved": "Агрегацію схвалено",
+    "activityRejected": "Агрегацію відхилено",
+    "activityDeferred": "Агрегацію відкладено",
+    "activityReset": "План скинуто",
+    "updated": "Потребу оновлено. Можливості агрегації перераховано."
   },
   "pt": {
     "appTitle": "Plano Anual de Compras",
@@ -265,17 +325,26 @@ window.I18N = {
     "defer": "Adiar",
     "implementedAs": "Implementado no plano dinâmico como",
     "addedAggregationCheck": "Necessidade adicionada. As oportunidades de agregação foram recalculadas.",
-    "confidence": {"high":"Alta confiança","medium":"Confiança média","review":"Rever"},
-    "decision": {"pending":"Pendente de análise","approved":"Aprovada","rejected":"Rejeitada","deferred":"Adiada"},
+    "confidence": {
+      "high": "Alta confiança",
+      "medium": "Confiança média",
+      "review": "Rever"
+    },
+    "decision": {
+      "pending": "Pendente de análise",
+      "approved": "Aprovada",
+      "rejected": "Rejeitada",
+      "deferred": "Adiada"
+    },
     "aggregationReasons": {
-      "sameRequirement":"Título da necessidade igual ou equivalente",
-      "strongScope":"Forte semelhança de escopo",
-      "relatedScope":"Formulação de escopo relacionada",
-      "sameSegment":"Mesmo segmento UNSPSC",
-      "timing60":"Datas de necessidade dentro de 60 dias",
-      "timing120":"Datas de necessidade dentro de 120 dias",
-      "sameDepartment":"Mesmo departamento",
-      "sameSupplier":"Mesmo fornecedor conhecido / atual"
+      "sameRequirement": "Título da necessidade igual ou equivalente",
+      "strongScope": "Forte semelhança de escopo",
+      "relatedScope": "Formulação de escopo relacionada",
+      "sameSegment": "Mesmo segmento UNSPSC",
+      "timing60": "Datas de necessidade dentro de 60 dias",
+      "timing120": "Datas de necessidade dentro de 120 dias",
+      "sameDepartment": "Mesmo departamento",
+      "sameSupplier": "Mesmo fornecedor conhecido / atual"
     },
     "totalReq": "Total de necessidades",
     "overdue": "Ação em atraso",
@@ -363,6 +432,27 @@ window.I18N = {
       "structuresAndBuildingAndConstructionAndManufacturingComponentsAndSupplies": "Estruturas, componentes e materiais de construção e fabrico",
       "transportationAndStorageAndMailServices": "Serviços de transporte, armazenamento e correio",
       "travelAndFoodAndLodgingAndEntertainmentServices": "Serviços de viagens, alimentação, alojamento e entretenimento"
-    }
+    },
+    "resetPlan": "Repor plano de demonstração",
+    "storedLocally": "Guardado apenas neste navegador",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "saveChanges": "Guardar alterações",
+    "editRequirement": "Editar necessidade",
+    "confirmDelete": "Eliminar esta necessidade adicionada?",
+    "confirmReset": "Repor todas as necessidades adicionadas e decisões de agregação para o plano de demonstração original?",
+    "activityLog": "Registo de atividade",
+    "activityIntro": "As alterações feitas neste navegador são registadas aqui e mantidas após atualizar a página.",
+    "clearActivity": "Limpar registo",
+    "noActivity": "Ainda não existem alterações registadas.",
+    "confirmClearActivity": "Limpar o registo de atividade?",
+    "activityAdded": "Adicionado",
+    "activityEdited": "Editado",
+    "activityDeleted": "Eliminado",
+    "activityApproved": "Agregação aprovada",
+    "activityRejected": "Agregação rejeitada",
+    "activityDeferred": "Agregação adiada",
+    "activityReset": "Plano reposto",
+    "updated": "Necessidade atualizada. Oportunidades de agregação recalculadas."
   }
 };
