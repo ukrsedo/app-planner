@@ -1,6 +1,6 @@
 window.APP_CONFIG = {
   defaultLanguage: 'en',
-  defaultCurrency: 'USD',
+  defaultCurrency: 'AED',
   s2cDays: {
     publicRfp: 120,
     closed: 100,
@@ -9,6 +9,7 @@ window.APP_CONFIG = {
     single: 30,
     rfq: 15,
     framework: 100,
-    emergency: 15
+    extension20: 15,
+    currentContract: 0
   }
 };

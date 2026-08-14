@@ -37,7 +37,7 @@
     const keep={department:f.department.value,segment:f.segment.value,criticality:f.criticality.value,buyingChannel:f.buyingChannel.value};
     f.department.innerHTML=Object.entries(t('departments')).map(([k,v])=>option(k,v)).join('');
     f.segment.innerHTML=Object.entries(t('segments')).map(([k,v])=>option(k,v)).join('');
-    f.criticality.innerHTML=['high','medium','low'].map(k=>option(k,t(k))).join('');
+    f.criticality.innerHTML=Object.entries(t('criticalities')).map(([k,v])=>option(k,v)).join('');
     f.buyingChannel.innerHTML=Object.entries(t('channels')).map(([k,v])=>option(k,v)).join('');
     Object.entries(keep).forEach(([k,v])=>{if(v)f[k].value=v});
     const sf=document.getElementById('statusFilter'), df=document.getElementById('departmentFilter');
