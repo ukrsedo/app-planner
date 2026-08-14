@@ -76,8 +76,8 @@
     const count=s=>rows.filter(r=>r.status===s).length;
     const pipeline=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=90).length;
     const byCurrency=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
-    const totalText=Object.entries(byCurrency).map(([c,v])=>money(v,c)).join(' · ');
-    const data=[[t('totalReq'),rows.length,''],[t('overdue'),count('overdue'),'overdue'],[t('required'),count('required'),'required'],[t('planning'),count('planning'),'planning'],[t('pipeline90'),pipeline,''],[t('totalValue'),totalText,'']];
+    const totalText=Object.entries(byCurrency).map(([c,v])=>`<span>${money(v,c)}</span>`).join('');
+    const data=[[t('totalReq'),rows.length,''],[t('overdue'),count('overdue'),'overdue'],[t('required'),count('required'),'required'],[t('planning'),count('planning'),'planning'],[t('pipeline90'),pipeline,''],[t('totalValue'),totalText,'total-value']];
     document.getElementById('kpis').innerHTML=data.map(([l,v,c])=>`<div class="kpi ${c}"><div class="kpi-label">${l}</div><div class="kpi-value">${v}</div></div>`).join('');
   }
 
