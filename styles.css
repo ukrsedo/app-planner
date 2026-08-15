@@ -347,3 +347,28 @@
     grid-template-columns:1fr;
   }
 }
+
+/* Step 18 — Good Spending header branding */
+.brand-mark.brand-logo{
+  width:72px;
+  height:52px;
+  padding:0;
+  border-radius:10px;
+  overflow:hidden;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.brand-mark.brand-logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+@media (max-width:700px){
+  .brand-mark.brand-logo{
+    width:62px;
+    height:46px;
+  }
+}
