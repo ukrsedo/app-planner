@@ -294,6 +294,31 @@
     const immediateAttentionRequirements=[...immediate].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
     const pipeline90Requirements=[...pipeline90.all].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
     const urgentEmergencyRequirements=rows.filter(r=>r.criticality==='emergency'||r.criticality==='urgent').sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
+    const aggregationOpportunities=opportunities.map((o,idx)=>{
+      const state=aggregationDecisions.get(o.key);
+      const decision=state?.decision||'pending';
+      const totalsByCurrency=o.members.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
+      const needDates=o.members.map(r=>r.needByDate).sort();
+      const departments=[...new Set(o.members.map(r=>t('departments')[r.department]))];
+      const segments=[...new Set(o.members.map(r=>t('segments')[r.segment]))];
+      return {
+        opportunityId:`OPP-${String(idx+1).padStart(3,'0')}`,
+        opportunityKey:o.key,
+        decision,
+        groupId:state?.groupId||'',
+        confidence:{label:confidence(o.score),score:o.score},
+        rationale:o.reasons.map(reasonText),
+        departments,
+        segments,
+        combinedValueByCurrency:totalsByCurrency,
+        timing:{
+          earliestNeedByDate:needDates[0]||'',
+          latestNeedByDate:needDates[needDates.length-1]||'',
+          spreadDays:needDates.length>1?absDaysBetween(needDates[0],needDates[needDates.length-1]):0
+        },
+        requirements:o.members.map(aiRequirement)
+      };
+    });
     const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>({department:t('departments')[k],requirements:count}));
     const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>({category:t('segments')[k],requirements:count}));
     return {
@@ -313,7 +338,8 @@
         topUpcomingRequirements:topRequirements,
         immediateAttentionRequirements,
         pipeline90Requirements,
-        urgentEmergencyRequirements
+        urgentEmergencyRequirements,
+        aggregationOpportunities
       }
     };
   }
