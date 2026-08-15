@@ -174,3 +174,91 @@
   .ai-snapshot-grid{grid-template-columns:1fr}
   .ai-aggregation-grid{grid-template-columns:1fr}
 }
+
+
+/* Step 16 — Public demo / production preamble */
+.prod-preamble{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);
+  gap:26px;
+  margin:24px 0;
+  padding:26px 28px;
+  border:1px solid #cfddea;
+  border-radius:16px;
+  background:#f7fafc;
+}
+
+.prod-eyebrow{
+  display:inline-block;
+  margin-bottom:8px;
+  font-size:.76rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:#335d7d;
+}
+
+.prod-copy h2{
+  margin:0 0 12px;
+  max-width:820px;
+  font-size:1.45rem;
+  line-height:1.25;
+  color:#17324d;
+}
+
+.prod-intro{
+  margin:0 0 14px;
+  max-width:860px;
+  line-height:1.55;
+  color:#435466;
+}
+
+.prod-notice{
+  margin:12px 0;
+  padding:10px 12px;
+  border-left:4px solid #7b97ad;
+  background:#fff;
+  border-radius:8px;
+  font-size:.92rem;
+  line-height:1.4;
+}
+
+.prod-cta{
+  margin-top:14px;
+  font-weight:700;
+  color:#17324d;
+}
+
+.prod-features{
+  padding:18px 20px;
+  background:#fff;
+  border:1px solid #dbe4ee;
+  border-radius:12px;
+}
+
+.prod-features h3{
+  margin:0 0 12px;
+  font-size:1rem;
+  color:#17324d;
+}
+
+.prod-features ul{
+  margin:0;
+  padding-left:19px;
+}
+
+.prod-features li{
+  margin:0 0 8px;
+  line-height:1.4;
+  color:#435466;
+}
+
+.prod-features li:last-child{
+  margin-bottom:0;
+}
+
+@media (max-width:900px){
+  .prod-preamble{
+    grid-template-columns:1fr;
+    padding:20px;
+  }
+}
