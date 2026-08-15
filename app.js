@@ -352,12 +352,127 @@
   function renderAiText(text){
     const root=document.getElementById('aiReviewOutput');
     const clean=String(text||'').trim();
-    if(!clean){root.innerHTML=`<div class="review-empty">${escapeHtml(t('aiReviewEmpty'))}</div>`;return;}
-    const parts=clean.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    root.innerHTML=parts.map(x=>{
-      if(/^[-•]\s+/.test(x)) return `<ul><li>${escapeHtml(x.replace(/^[-•]\s+/,''))}</li></ul>`;
-      if(/^#{1,3}\s+/.test(x)) return `<h3>${escapeHtml(x.replace(/^#{1,3}\s+/,''))}</h3>`;
-      return `<p>${escapeHtml(x)}</p>`;
+
+    if(!clean){
+      root.innerHTML=`<div class="review-empty">${escapeHtml(t('aiReviewEmpty'))}</div>`;
+      return;
+    }
+
+    const inlineFormat = (s) => {
+      const escaped = escapeHtml(s);
+      return escaped.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    };
+
+    const lines = clean.split(/\r?\n/);
+    const sections = [];
+    let current = null;
+
+    const sectionNames = new Set([
+      'Management Snapshot',
+      'Aggregation Opportunities',
+      'Priority Requirements',
+      '90-Day Pipeline',
+      'Management Actions'
+    ]);
+
+    for(const raw of lines){
+      const line = raw.trim();
+
+      if(!line) {
+        if(current) current.items.push({type:'blank'});
+        continue;
+      }
+
+      if(sectionNames.has(line)){
+        current = {title:line, items:[]};
+        sections.push(current);
+        continue;
+      }
+
+      if(!current){
+        current = {title:'', items:[]};
+        sections.push(current);
+      }
+
+      current.items.push({type:'line', text:line});
+    }
+
+    const renderSnapshot = (items) => {
+      const rows = items
+        .filter(x=>x.type==='line')
+        .map(x=>`<div class="ai-snapshot-row">${inlineFormat(x.text)}</div>`)
+        .join('');
+      return `<div class="ai-snapshot-grid">${rows}</div>`;
+    };
+
+    const renderAggregation = (items) => {
+      const cards = [];
+      let card = null;
+
+      for(const item of items){
+        if(item.type==='blank') continue;
+        const text=item.text;
+
+        if(/^\*\*OPP-\d+/i.test(text)){
+          if(card) cards.push(card);
+          card={title:text, meta:[], reason:[]};
+          continue;
+        }
+
+        if(!card){
+          card={title:'', meta:[], reason:[]};
+        }
+
+        if(/^Why review:/i.test(text)) card.reason.push(text);
+        else card.meta.push(text);
+      }
+
+      if(card) cards.push(card);
+
+      return `<div class="ai-aggregation-grid">${cards.map(c=>`
+        <article class="ai-aggregation-card">
+          ${c.title?`<h4>${inlineFormat(c.title)}</h4>`:''}
+          ${c.meta.map(x=>`<div class="ai-agg-meta">${inlineFormat(x)}</div>`).join('')}
+          ${c.reason.map(x=>`<div class="ai-agg-reason">${inlineFormat(x)}</div>`).join('')}
+        </article>`).join('')}</div>`;
+    };
+
+    const renderPriority = (items) => {
+      return `<div class="ai-priority-list">${items
+        .filter(x=>x.type==='line')
+        .map(x=>`<div class="ai-priority-row">${inlineFormat(x.text)}</div>`)
+        .join('')}</div>`;
+    };
+
+    const renderPipeline = (items) => {
+      return `<div class="ai-text-block">${items
+        .filter(x=>x.type==='line')
+        .map(x=>`<p>${inlineFormat(x.text)}</p>`)
+        .join('')}</div>`;
+    };
+
+    const renderActions = (items) => {
+      return `<ul class="ai-action-list">${items
+        .filter(x=>x.type==='line')
+        .map(x=>`<li>${inlineFormat(x.text.replace(/^[-•]\s*/,''))}</li>`)
+        .join('')}</ul>`;
+    };
+
+    root.innerHTML = sections.map(section=>{
+      let body='';
+      switch(section.title){
+        case 'Management Snapshot': body=renderSnapshot(section.items); break;
+        case 'Aggregation Opportunities': body=renderAggregation(section.items); break;
+        case 'Priority Requirements': body=renderPriority(section.items); break;
+        case '90-Day Pipeline': body=renderPipeline(section.items); break;
+        case 'Management Actions': body=renderActions(section.items); break;
+        default: body=renderPipeline(section.items);
+      }
+
+      return `<section class="ai-review-section">
+        ${section.title?`<h3>${escapeHtml(section.title)}</h3>`:''}
+        ${body}
+      </section>`;
     }).join('');
   }
 

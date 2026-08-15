@@ -58,3 +58,119 @@
 .ai-facts pre{margin:0;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#334155}
 .ai-guardrail{margin-top:12px;padding:10px 12px;border-radius:9px;background:#fff7e8;border:1px solid #f2d39b;color:#6b4b16;font-size:.82rem;line-height:1.45}
 .ai-review-toolbar button:disabled{opacity:.55;cursor:wait}
+
+
+/* Step 14 — AI review presentation */
+#aiReviewOutput{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+.ai-review-section{
+  background:#fff;
+  border:1px solid #dbe4ee;
+  border-radius:14px;
+  padding:20px 22px;
+}
+
+.ai-review-section h3{
+  margin:0 0 16px;
+  font-size:1.15rem;
+  line-height:1.25;
+  color:#17324d;
+}
+
+.ai-snapshot-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:10px 14px;
+}
+
+.ai-snapshot-row{
+  padding:11px 12px;
+  background:#f7f9fc;
+  border-radius:10px;
+  line-height:1.35;
+}
+
+.ai-snapshot-row strong{
+  font-size:1.12em;
+  color:#17324d;
+}
+
+.ai-aggregation-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:14px;
+}
+
+.ai-aggregation-card{
+  border:1px solid #dbe4ee;
+  border-radius:12px;
+  padding:16px;
+  background:#fbfcfe;
+}
+
+.ai-aggregation-card h4{
+  margin:0 0 10px;
+  font-size:1rem;
+  color:#17324d;
+}
+
+.ai-agg-meta{
+  font-size:.95rem;
+  line-height:1.45;
+  margin-bottom:8px;
+}
+
+.ai-agg-reason{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid #e6edf4;
+  font-size:.94rem;
+  line-height:1.45;
+}
+
+.ai-priority-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.ai-priority-row{
+  padding:10px 12px;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  background:#fafbfd;
+  line-height:1.4;
+}
+
+.ai-text-block p{
+  margin:0 0 10px;
+  line-height:1.5;
+}
+
+.ai-text-block p:last-child{
+  margin-bottom:0;
+}
+
+.ai-action-list{
+  margin:0;
+  padding-left:20px;
+}
+
+.ai-action-list li{
+  margin:0 0 9px;
+  line-height:1.45;
+}
+
+.ai-action-list li:last-child{
+  margin-bottom:0;
+}
+
+@media (max-width:700px){
+  .ai-review-section{padding:16px}
+  .ai-snapshot-grid{grid-template-columns:1fr}
+  .ai-aggregation-grid{grid-template-columns:1fr}
+}
