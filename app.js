@@ -349,6 +349,67 @@
     box.innerHTML=`<h3>${escapeHtml(t('aiFactsHeading'))}</h3><pre>${escapeHtml(JSON.stringify(buildAiReviewPayload(rows),null,2))}</pre>`;
   }
 
+  function renderDeterministicAiSummary(rows){
+    const root=document.getElementById('aiDeterministicSummary');
+    if(!root)return;
+
+    const overdue=rows.filter(r=>r.status==='overdue').length;
+    const required=rows.filter(r=>r.status==='required').length;
+    const immediate=overdue+required;
+    const pipeline=getPipeline90(rows);
+    const p030=pipeline.days0to30.length;
+    const p3160=pipeline.days31to60.length;
+    const p6190=pipeline.days61to90.length;
+
+    let trendKey='pipelineMixed';
+    if(p030<p3160 && p3160<p6190) trendKey='pipelineIncreasing';
+    else if(p030>p3160 && p3160>p6190) trendKey='pipelineDecreasing';
+    else if(p030===p3160 && p3160===p6190) trendKey='pipelineStable';
+
+    root.innerHTML=`
+      <section class="ai-deterministic-section">
+        <h3>${escapeHtml(t('overallSituation'))}</h3>
+        <div class="ai-signal-grid">
+          <div class="ai-signal-card">
+            <span>${escapeHtml(t('planHealth'))}</span>
+            <strong>${immediate}</strong>
+            <p>${escapeHtml(fillTemplate(t('planHealthDetail'),{overdue,required}))}</p>
+          </div>
+          <div class="ai-signal-card">
+            <span>${escapeHtml(t('forwardPressure'))}</span>
+            <strong>${pipeline.all.length}</strong>
+            <p>${escapeHtml(t('forwardPressureDetail'))}</p>
+          </div>
+          <div class="ai-signal-card ai-signal-wide">
+            <span>${escapeHtml(t('managementImplication'))}</span>
+            <p>${escapeHtml(fillTemplate(t('overallSituationImplication'),{immediate,pipeline:pipeline.all.length}))}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="ai-deterministic-section">
+        <h3>${escapeHtml(t('whatComingNext'))}</h3>
+        <div class="ai-pipeline-grid">
+          <div class="ai-pipeline-card">
+            <span>0–30 ${escapeHtml(t('daysUnit'))}</span>
+            <strong>${p030}</strong>
+            <p>${escapeHtml(t('pipeline030Meaning'))}</p>
+          </div>
+          <div class="ai-pipeline-card">
+            <span>31–60 ${escapeHtml(t('daysUnit'))}</span>
+            <strong>${p3160}</strong>
+            <p>${escapeHtml(t('pipeline3160Meaning'))}</p>
+          </div>
+          <div class="ai-pipeline-card">
+            <span>61–90 ${escapeHtml(t('daysUnit'))}</span>
+            <strong>${p6190}</strong>
+            <p>${escapeHtml(t('pipeline6190Meaning'))}</p>
+          </div>
+        </div>
+        <div class="ai-trend-line"><strong>${escapeHtml(t('trend'))}:</strong> ${escapeHtml(fillTemplate(t(trendKey),{a:p030,b:p3160,c:p6190}))}</div>
+      </section>`;
+  }
+
   function renderAiText(text){
     const root=document.getElementById('aiReviewOutput');
     const clean=String(text||'').trim();
@@ -368,11 +429,9 @@
     let current = null;
 
     const sectionNames = new Set([
-      'Management Snapshot',
-      'Aggregation Opportunities',
-      'Priority Requirements',
-      '90-Day Pipeline',
-      'Management Actions'
+      'What Needs Attention Now',
+      'Where Aggregation May Help',
+      'Decisions Required'
     ]);
 
     for(const raw of lines){
@@ -461,11 +520,9 @@
     root.innerHTML = sections.map(section=>{
       let body='';
       switch(section.title){
-        case 'Management Snapshot': body=renderSnapshot(section.items); break;
-        case 'Aggregation Opportunities': body=renderAggregation(section.items); break;
-        case 'Priority Requirements': body=renderPriority(section.items); break;
-        case '90-Day Pipeline': body=renderPipeline(section.items); break;
-        case 'Management Actions': body=renderActions(section.items); break;
+        case 'What Needs Attention Now': body=renderPriority(section.items); break;
+        case 'Where Aggregation May Help': body=renderAggregation(section.items); break;
+        case 'Decisions Required': body=renderActions(section.items); break;
         default: body=renderPipeline(section.items);
       }
 
@@ -498,7 +555,7 @@
     const actionKey={added:'activityAdded',edited:'activityEdited',deleted:'activityDeleted',approved:'activityApproved',rejected:'activityRejected',deferred:'activityDeferred',reset:'activityReset'};
     list.innerHTML=activityLog.map(x=>`<div class="activity-item"><div class="activity-time">${new Intl.DateTimeFormat(lang==='uk'?'uk-UA':lang==='pt'?'pt-PT':'en-GB',{dateStyle:'medium',timeStyle:'short'}).format(new Date(x.ts))}</div><div class="activity-action">${escapeHtml(t(actionKey[x.action]||x.action))}</div><div class="activity-detail">${escapeHtml(x.detail||'')}</div></div>`).join('');
   }
-  function render(){ const rows=calculated(); renderKpis(rows); renderManagementReview(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
+  function render(){ const rows=calculated(); renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r)return; editingId=id;

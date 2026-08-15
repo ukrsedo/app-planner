@@ -372,3 +372,18 @@
     height:46px;
   }
 }
+
+
+/* Step 19 — deterministic management signal cards */
+.ai-deterministic-summary{display:flex;flex-direction:column;gap:18px;margin:18px 0}
+.ai-deterministic-section{background:#fff;border:1px solid #dbe4ee;border-radius:14px;padding:20px 22px}
+.ai-deterministic-section h3{margin:0 0 16px;color:#17324d;font-size:1.15rem}
+.ai-signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ai-signal-card,.ai-pipeline-card{padding:16px;border:1px solid #e1e8ef;border-radius:12px;background:#f9fbfd}
+.ai-signal-card span,.ai-pipeline-card span{display:block;margin-bottom:6px;font-size:.82rem;font-weight:700;color:#5d6f80}
+.ai-signal-card strong,.ai-pipeline-card strong{display:block;margin-bottom:5px;font-size:1.65rem;color:#17324d}
+.ai-signal-card p,.ai-pipeline-card p{margin:0;line-height:1.45;color:#435466}
+.ai-signal-wide{grid-column:1/-1}
+.ai-pipeline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ai-trend-line{margin-top:14px;padding:12px 14px;border-left:4px solid #6f8fa8;background:#f7f9fc;border-radius:8px;line-height:1.45}
+@media(max-width:760px){.ai-signal-grid,.ai-pipeline-grid{grid-template-columns:1fr}.ai-signal-wide{grid-column:auto}}
