@@ -4,7 +4,7 @@ window.I18N = {
     "appSubtitle": "Live procurement demand planning demonstrator",
     "demoBadge": "Synthetic 2027 plan data",
     "prodEyebrow": "PUBLIC DEMONSTRATOR",
-    "prodTitle": "From Excel APP upload to an AI-enabled operational procurement report."
+    "prodTitle": "From Excel APP upload to an AI-enabled operational procurement report.",
         "prodIntro": "The production version follows one simple operational flow from the client’s Annual Procurement Plan to an AI-enabled management report.",
     "prodStep1Title": "Upload Excel APP",
     "prodStep1Text": "The client loads the structured Annual Procurement Plan template into the Microsoft 365 environment.",
@@ -221,7 +221,7 @@ window.I18N = {
     "appSubtitle": "Демонстрація динамічного планування закупівельних потреб",
     "demoBadge": "Синтетичний план на 2027 рік",
     "prodEyebrow": "ПУБЛІЧНА ДЕМОНСТРАЦІЙНА ВЕРСІЯ",
-    "prodTitle": "Від завантаження Excel APP до AI-підсиленого операційного звіту із закупівель."
+    "prodTitle": "Від завантаження Excel APP до AI-підсиленого операційного звіту із закупівель.",
         "prodIntro": "Продуктивна версія працює за простим операційним ланцюжком: від річного плану закупівель клієнта до AI-підсиленого управлінського звіту.",
     "prodStep1Title": "Завантаження Excel APP",
     "prodStep1Text": "Клієнт завантажує структурований шаблон річного плану закупівель у середовище Microsoft 365.",
@@ -438,7 +438,7 @@ window.I18N = {
     "appSubtitle": "Demonstração de planeamento dinâmico da procura de compras",
     "demoBadge": "Plano sintético de 2027",
     "prodEyebrow": "DEMONSTRADOR PÚBLICO",
-    "prodTitle": "Do carregamento do APP em Excel ao relatório operacional de compras com IA."
+    "prodTitle": "Do carregamento do APP em Excel ao relatório operacional de compras com IA.",
         "prodIntro": "A versão de produção segue um fluxo operacional simples: do Plano Anual de Compras do cliente até um relatório de gestão operacional com IA.",
     "prodStep1Title": "Carregar o APP em Excel",
     "prodStep1Text": "O cliente carrega o modelo estruturado do Plano Anual de Compras no ambiente Microsoft 365.",
