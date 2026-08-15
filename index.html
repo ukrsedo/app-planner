@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Annual Procurement Plan</title>
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body>
   <header class="topbar">
@@ -25,25 +25,58 @@
 
   <main class="container">
     <section class="prod-preamble">
-      <div class="prod-copy">
-        <div class="prod-eyebrow" data-i18n="prodEyebrow"></div>
-        <h2 data-i18n="prodTitle"></h2>
-        <p class="prod-intro" data-i18n="prodIntro"></p>
+      <div class="prod-eyebrow" data-i18n="prodEyebrow"></div>
+      <h2 data-i18n="prodTitle"></h2>
+      <p class="prod-intro" data-i18n="prodIntro"></p>
+
+      <div class="prod-workflow" aria-label="Production workflow">
+        <div class="prod-step">
+          <div class="prod-step-no">1</div>
+          <div class="prod-step-copy">
+            <strong data-i18n="prodStep1Title"></strong>
+            <span data-i18n="prodStep1Text"></span>
+          </div>
+        </div>
+        <div class="prod-arrow">→</div>
+        <div class="prod-step">
+          <div class="prod-step-no">2</div>
+          <div class="prod-step-copy">
+            <strong data-i18n="prodStep2Title"></strong>
+            <span data-i18n="prodStep2Text"></span>
+          </div>
+        </div>
+        <div class="prod-arrow">→</div>
+        <div class="prod-step">
+          <div class="prod-step-no">3</div>
+          <div class="prod-step-copy">
+            <strong data-i18n="prodStep3Title"></strong>
+            <span data-i18n="prodStep3Text"></span>
+          </div>
+        </div>
+        <div class="prod-arrow">→</div>
+        <div class="prod-step">
+          <div class="prod-step-no">4</div>
+          <div class="prod-step-copy">
+            <strong data-i18n="prodStep4Title"></strong>
+            <span data-i18n="prodStep4Text"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-lower">
         <div class="prod-notice" data-i18n="sampleNotice"></div>
-        <div class="prod-cta" data-i18n="prodCta"></div>
+        <div class="prod-features">
+          <h3 data-i18n="prodIncludesTitle"></h3>
+          <ul>
+            <li data-i18n="prodFeatureData"></li>
+            <li data-i18n="prodFeatureAudit"></li>
+            <li data-i18n="prodFeatureRules"></li>
+            <li data-i18n="prodFeatureIntegration"></li>
+          </ul>
+        </div>
       </div>
-      <div class="prod-features">
-        <h3 data-i18n="prodIncludesTitle"></h3>
-        <ul>
-          <li data-i18n="prodFeatureData"></li>
-          <li data-i18n="prodFeatureAutomation"></li>
-          <li data-i18n="prodFeatureAggregation"></li>
-          <li data-i18n="prodFeatureAudit"></li>
-          <li data-i18n="prodFeatureRules"></li>
-          <li data-i18n="prodFeatureAI"></li>
-          <li data-i18n="prodFeatureIntegration"></li>
-        </ul>
-      </div>
+
+      <div class="prod-cta" data-i18n="prodCta"></div>
     </section>
 
     <section class="section">
@@ -148,6 +181,6 @@
   </main>
   <footer data-i18n="footer"></footer>
 
-  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js?v=16"></script>
+  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js?v=17"></script>
 </body>
 </html>
