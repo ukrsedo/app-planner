@@ -129,9 +129,16 @@
       <div class="section-head"><h2 id="formHeading" data-i18n="addNew"></h2><span class="local-badge" data-i18n="storedLocally"></span></div>
       <form id="requirementForm">
         <div class="form-grid">
-          <label><span data-i18n="title"></span><input name="title" required></label>
+          <div class="multilingual-fields span-2">
+            <div class="multilingual-heading"><strong data-i18n="multilingualContentTitle"></strong><span data-i18n="multilingualContentHelp"></span></div>
+            <label><span data-i18n="titleEn"></span><input name="titleEn" required></label>
+            <label><span data-i18n="titleUk"></span><input name="titleUk" required></label>
+            <label><span data-i18n="titlePt"></span><input name="titlePt" required></label>
+            <label><span data-i18n="descriptionEn"></span><textarea name="descriptionEn" rows="3" required></textarea></label>
+            <label><span data-i18n="descriptionUk"></span><textarea name="descriptionUk" rows="3" required></textarea></label>
+            <label><span data-i18n="descriptionPt"></span><textarea name="descriptionPt" rows="3" required></textarea></label>
+          </div>
           <label><span data-i18n="department"></span><select name="department" required></select></label>
-          <label class="span-2"><span data-i18n="description"></span><textarea name="description" rows="3" required></textarea></label>
           <label><span data-i18n="unspsc"></span><select name="segment" required></select></label>
           <label><span data-i18n="criticality"></span><select name="criticality" required></select></label>
           <label><span data-i18n="value"></span><input name="estimatedValue" type="number" min="0" step="0.01" required></label>
@@ -175,6 +182,6 @@
   </main>
   <footer data-i18n="footer"></footer>
 
-  <script src="config.js"></script><script src="translations.js?v=24"></script><script src="sample-data.js"></script><script src="app.js?v=24"></script>
+  <script src="config.js"></script><script src="translations.js?v=25"></script><script src="sample-data.js"></script><script src="sample-content-i18n.js?v=25"></script><script src="app.js?v=25"></script>
 </body>
 </html>

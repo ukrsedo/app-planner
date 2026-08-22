@@ -1,7 +1,7 @@
 (() => {
   const cfg = window.APP_CONFIG, dict = window.I18N;
   let lang = cfg.defaultLanguage;
-  let requirements = window.SAMPLE_REQUIREMENTS.map(x => ({...x}));
+  let requirements = window.SAMPLE_REQUIREMENTS.map(x => ({...x,...(window.SAMPLE_REQUIREMENT_I18N?.[x.id]||{})}));
   const aggregationDecisions = new Map();
   let nextAggregationNo = 1;
   let activityLog=[];
@@ -25,6 +25,9 @@
   const statusFor = d => d < 0 ? 'overdue' : d <= 30 ? 'required' : 'planning';
   const statusLabel = s => s==='overdue'?t('overdue'):s==='required'?t('required'):t('planning');
   const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const titleFor=r=>r?.titleI18n?.[lang]||r?.titleI18n?.en||r?.title||'';
+  const descriptionFor=r=>r?.descriptionI18n?.[lang]||r?.descriptionI18n?.en||r?.description||'';
+  const departmentFor=r=>r?.department?t('departments')[r.department]||r.department:t('multipleDepartments');
 
   function calculate(r){
     const s2c=cfg.s2cDays[r.buyingChannel];
@@ -79,17 +82,17 @@
 
   function filteredRows(rows){
     const q=document.getElementById('searchBox').value.trim().toLowerCase(),s=document.getElementById('statusFilter').value,d=document.getElementById('departmentFilter').value;
-    return rows.filter(r=>(!q||`${r.title} ${r.description} ${r.supplier}`.toLowerCase().includes(q))&&(!s||r.status===s)&&(!d||r.department===d));
+    return rows.filter(r=>(!q||`${titleFor(r)} ${descriptionFor(r)} ${r.supplier}`.toLowerCase().includes(q))&&(!s||r.status===s)&&(!d||r.department===d));
   }
 
   function renderTable(rows){
     const target=document.getElementById('planRows'),empty=document.getElementById('emptyState');
     target.innerHTML=rows.map(r=>`<tr>
-      <td><div class="req-title">${escapeHtml(r.title)}</div><div class="muted">${escapeHtml(r.description)}</div>${r.aggregationGroup?`<div class="group-tag">${escapeHtml(r.aggregationGroup)}</div>`:''}</td>
-      <td>${t('departments')[r.department]}</td><td>${t('segments')[r.segment]}</td><td>${money(r.estimatedValue,r.currency)}</td>
+      <td><div class="req-title">${escapeHtml(titleFor(r))}</div><div class="muted">${escapeHtml(descriptionFor(r))}</div>${r.aggregationGroup?`<div class="group-tag">${escapeHtml(r.aggregationGroup)}</div>`:''}</td>
+      <td>${escapeHtml(departmentFor(r))}</td><td>${t('segments')[r.segment]||t('multipleCategories')}</td><td>${money(r.estimatedValue,r.currency)}</td>
       <td>${fmtDate(r.needByDate)}</td><td>${t('channels')[r.buyingChannel]}<div class="muted">${t('s2cLabel')}: ${r.s2cDays} ${t('days')}</div></td>
       <td>${fmtDate(r.requiredStart)}</td><td class="${r.daysRemaining<0?'days-negative':''}">${r.daysRemaining}</td><td><span class="status ${r.status}">${statusLabel(r.status)}</span></td>
-      <td>${r.isUserAdded?`<div class="row-actions"><button class="secondary edit-row" data-id="${r.id}">${t('edit')}</button><button class="secondary delete-row" data-id="${r.id}">${t('delete')}</button></div>`:'—'}</td>
+      <td>${!r.isAggregation?`<div class="row-actions"><button class="secondary edit-row" data-id="${r.id}">${t('edit')}</button>${r.isUserAdded?`<button class="secondary delete-row" data-id="${r.id}">${t('delete')}</button>`:''}</div>`:'—'}</td>
     </tr>`).join('');
     document.querySelectorAll('.edit-row').forEach(b=>b.addEventListener('click',()=>startEdit(Number(b.dataset.id))));
     document.querySelectorAll('.delete-row').forEach(b=>b.addEventListener('click',()=>deleteRequirement(Number(b.dataset.id))));
@@ -192,7 +195,7 @@
       const state=aggregationDecisions.get(o.key);
       const decision=state?.decision || 'pending';
       const conf=confidence(o.score);
-      const memberRows=o.members.map(r=>`<div class="agg-member"><div><strong>${escapeHtml(r.title)}</strong><span>${t('departments')[r.department]} · ${fmtDate(r.needByDate)}</span></div><div>${money(r.estimatedValue,r.currency)}</div></div>`).join('');
+      const memberRows=o.members.map(r=>`<div class="agg-member"><div><strong>${escapeHtml(titleFor(r))}</strong><span>${escapeHtml(departmentFor(r))} · ${fmtDate(r.needByDate)}</span></div><div>${money(r.estimatedValue,r.currency)}</div></div>`).join('');
       const reasonChips=o.reasons.slice(0,4).map(r=>`<span>${escapeHtml(reasonText(r))}</span>`).join('');
       const groupNote=state?.groupId?`<div class="implemented-note">${t('implementedAs')} <strong>${state.groupId}</strong></div>`:'';
       return `<article class="aggregation-card ${decision}">
@@ -242,8 +245,18 @@
         aggregationGroup:groupId,
         aggregationOpportunity:key,
         planYear:first.planYear,
-        title:`Aggregated – ${first.title}`,
-        description:`Approved aggregation ${groupId}. Consolidated from ${opp.members.length} APP requirements.`,
+        title:`Aggregated — ${first.titleI18n?.en||first.title}`,
+        description:`Approved aggregation ${groupId}. Combined from ${opp.members.length} APP requirements.`,
+        titleI18n:{
+          en:`Aggregated — ${first.titleI18n?.en||first.title}`,
+          uk:`Агреговано — ${first.titleI18n?.uk||first.title}`,
+          pt:`Agregado — ${first.titleI18n?.pt||first.title}`
+        },
+        descriptionI18n:{
+          en:`Approved aggregation ${groupId}. Combined from ${opp.members.length} APP requirements.`,
+          uk:`Схвалена агрегація ${groupId}. Поєднано потреб: ${opp.members.length}.`,
+          pt:`Agregação ${groupId} aprovada. Necessidades combinadas: ${opp.members.length}.`
+        },
         department:departments.length===1?departments[0]:null,
         segment,
         estimatedValue:isMixedCurrency
@@ -260,7 +273,7 @@
     }else{
       aggregationDecisions.set(key,{decision,groupId:null});
     }
-    logActivity(decision==='approved'?'approved':decision==='rejected'?'rejected':'deferred', `${groupId||''} ${opp.members.map(r=>r.title).join(' + ')}`.trim());
+    logActivity(decision==='approved'?'approved':decision==='rejected'?'rejected':'deferred', `${groupId||''} ${opp.members.map(titleFor).join(' + ')}`.trim());
     saveState(); render();
   }
 
@@ -295,8 +308,8 @@
     const urgent=rows.filter(r=>r.criticality==='urgent');
     const regular=rows.filter(r=>r.criticality==='regular');
     const critical180=next180.filter(r=>r.criticality==='emergency'||r.criticality==='urgent').length;
-    const immediateHtml=immediate.length?`<div class="review-list">${immediate.slice(0,5).map(r=>`<div class="review-item"><div><strong>${escapeHtml(r.title)}</strong><span>${escapeHtml(t('departments')[r.department])} · ${statusLabel(r.status)} · ${t('startingIn')} ${r.daysRemaining} ${t('daysUnit')}</span></div><div class="review-value">${money(r.estimatedValue,r.currency)}</div></div>`).join('')}</div>`:`<div class="review-empty">${t('noImmediatePriorities')}</div>`;
-    const highValueHtml=highValue.length?`<div class="review-list">${highValue.map(r=>`<div class="review-item"><div><strong>${escapeHtml(r.title)}</strong><span>${escapeHtml(t('departments')[r.department])} · ${fmtDate(r.requiredStart)}</span></div><div class="review-value">${money(r.estimatedValue,r.currency)}</div></div>`).join('')}</div>`:`<div class="review-empty">${t('noUpcomingItems')}</div>`;
+    const immediateHtml=immediate.length?`<div class="review-list">${immediate.slice(0,5).map(r=>`<div class="review-item"><div><strong>${escapeHtml(titleFor(r))}</strong><span>${escapeHtml(departmentFor(r))} · ${statusLabel(r.status)} · ${t('startingIn')} ${r.daysRemaining} ${t('daysUnit')}</span></div><div class="review-value">${money(r.estimatedValue,r.currency)}</div></div>`).join('')}</div>`:`<div class="review-empty">${t('noImmediatePriorities')}</div>`;
+    const highValueHtml=highValue.length?`<div class="review-list">${highValue.map(r=>`<div class="review-item"><div><strong>${escapeHtml(titleFor(r))}</strong><span>${escapeHtml(departmentFor(r))} · ${fmtDate(r.requiredStart)}</span></div><div class="review-value">${money(r.estimatedValue,r.currency)}</div></div>`).join('')}</div>`:`<div class="review-empty">${t('noUpcomingItems')}</div>`;
     const obs=[];
     const overdue=rows.filter(r=>r.status==='overdue').length, required=rows.filter(r=>r.status==='required').length;
     if(immediate.length) obs.push(fillTemplate(t('observationImmediate'),{count:immediate.length,overdue,required})); else obs.push(t('observationNoImmediate'));
@@ -329,15 +342,15 @@
     const totalsByCurrency=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
     const aiRequirement=r=>({
       id:r.id,
-      title:r.title,
-      department:t('departments')[r.department],
-      segment:t('segments')[r.segment],
+      title:titleFor(r),
+      department:departmentFor(r),
+      segment:r.segment?t('segments')[r.segment]:t('multipleCategories'),
       value:r.estimatedValue,
       currency:r.currency,
       needByDate:r.needByDate,
       requiredProcurementStart:r.requiredStart,
       daysRemaining:r.daysRemaining,
-      status:r.status,
+      status:statusLabel(r.status),
       criticality:t('criticalities')[r.criticality]
     });
     const topRequirements=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5).map(aiRequirement);
@@ -349,7 +362,7 @@
       const decision=state?.decision||'pending';
       const totalsByCurrency=o.members.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
       const needDates=o.members.map(r=>r.needByDate).sort();
-      const departments=[...new Set(o.members.map(r=>t('departments')[r.department]))];
+      const departments=[...new Set(o.members.map(departmentFor))];
       const segments=[...new Set(o.members.map(r=>t('segments')[r.segment]))];
       return {
         opportunityId:`OPP-${String(idx+1).padStart(3,'0')}`,
@@ -372,7 +385,7 @@
     const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>({department:t('departments')[k],requirements:count}));
     const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>({category:t('segments')[k],requirements:count}));
     return {
-      task:'Provide concise procurement-management commentary based only on the supplied calculated facts. Do not invent facts, approve aggregations, or modify the plan. Distinguish observed facts from recommendations.',
+      task:`Write the complete report only in ${lang==='uk'?'Ukrainian':lang==='pt'?'Portuguese':'English'}. Do not mix languages and do not expose internal field names. Use only the supplied calculated facts. Do not invent facts, approve aggregations, or modify the plan.`,
       language:lang==='uk'?'Ukrainian':lang==='pt'?'Portuguese':'English',
       planDate:planDateEl.value,
       facts:{
@@ -478,10 +491,10 @@
     const sections = [];
     let current = null;
 
-    const sectionNames = new Set([
-      'What Needs Attention Now',
-      'Where Aggregation May Help',
-      'Decisions Required'
+    const sectionRoles = new Map([
+      [t('aiSectionAttention'),'attention'],
+      [t('aiSectionAggregation'),'aggregation'],
+      [t('aiSectionDecisions'),'decisions']
     ]);
 
     for(const raw of lines){
@@ -492,8 +505,8 @@
         continue;
       }
 
-      if(sectionNames.has(line)){
-        current = {title:line, items:[]};
+      if(sectionRoles.has(line)){
+        current = {title:line,role:sectionRoles.get(line),items:[]};
         sections.push(current);
         continue;
       }
@@ -532,7 +545,7 @@
           card={title:'', meta:[], reason:[]};
         }
 
-        if(/^Why review:/i.test(text)) card.reason.push(text);
+        if(text.toLocaleLowerCase().startsWith(t('aiWhyReviewPrefix').toLocaleLowerCase())) card.reason.push(text);
         else card.meta.push(text);
       }
 
@@ -569,10 +582,10 @@
 
     root.innerHTML = sections.map(section=>{
       let body='';
-      switch(section.title){
-        case 'What Needs Attention Now': body=renderPriority(section.items); break;
-        case 'Where Aggregation May Help': body=renderAggregation(section.items); break;
-        case 'Decisions Required': body=renderActions(section.items); break;
+      switch(section.role){
+        case 'attention': body=renderPriority(section.items); break;
+        case 'aggregation': body=renderAggregation(section.items); break;
+        case 'decisions': body=renderActions(section.items); break;
         default: body=renderPipeline(section.items);
       }
 
@@ -629,9 +642,11 @@
   function render(){ const rows=calculated(); updateRefreshState(); renderProcessMap(rows); if(!planRefreshed)return; renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
   function startEdit(id){
-    const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r)return; editingId=id;
+    const r=requirements.find(x=>x.id===id&&!x.isAggregation); if(!r)return; editingId=id;
     const f=document.getElementById('requirementForm');
-    f.title.value=r.title; f.description.value=r.description; f.department.value=r.department; f.segment.value=r.segment; f.estimatedValue.value=r.estimatedValue; f.currency.value=r.currency; f.needByDate.value=r.needByDate; f.criticality.value=r.criticality; f.buyingChannel.value=r.buyingChannel; f.supplier.value=r.supplier||'';
+    f.titleEn.value=r.titleI18n?.en||r.title||''; f.titleUk.value=r.titleI18n?.uk||''; f.titlePt.value=r.titleI18n?.pt||'';
+    f.descriptionEn.value=r.descriptionI18n?.en||r.description||''; f.descriptionUk.value=r.descriptionI18n?.uk||''; f.descriptionPt.value=r.descriptionI18n?.pt||'';
+    f.department.value=r.department; f.segment.value=r.segment; f.estimatedValue.value=r.estimatedValue; f.currency.value=r.currency; f.needByDate.value=r.needByDate; f.criticality.value=r.criticality; f.buyingChannel.value=r.buyingChannel; f.supplier.value=r.supplier||'';
     document.getElementById('formHeading').textContent=t('editRequirement'); document.getElementById('submitRequirement').textContent=t('saveChanges');
     document.querySelector('.form-section').scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -640,7 +655,7 @@
     const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r||!confirm(t('confirmDelete')))return;
     requirements=requirements.filter(x=>x.id!==id);
     for(const [key,state] of [...aggregationDecisions.entries()]) if(key.split('-').map(Number).includes(id)) aggregationDecisions.delete(key);
-    logActivity('deleted',r.title); saveState(); render();
+    logActivity('deleted',titleFor(r)); saveState(); render();
   }
 
   document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;saveState();applyTranslations()}));
@@ -655,17 +670,20 @@
   document.getElementById('resetFilters').addEventListener('click',()=>{document.getElementById('searchBox').value='';document.getElementById('statusFilter').value='';document.getElementById('departmentFilter').value='';render()});
   document.getElementById('requirementForm').addEventListener('submit',e=>{
     e.preventDefault(); const f=e.currentTarget,fd=new FormData(f);
-    const r={id:editingId||Date.now(),isUserAdded:true,planYear:Number(fd.get('needByDate').slice(0,4)),title:fd.get('title').trim(),description:fd.get('description').trim(),department:fd.get('department'),segment:fd.get('segment'),estimatedValue:Number(fd.get('estimatedValue')),currency:fd.get('currency'),needByDate:fd.get('needByDate'),criticality:fd.get('criticality'),buyingChannel:fd.get('buyingChannel'),supplier:fd.get('supplier').trim()};
-    if(!r.title||!r.description||!r.needByDate||!r.estimatedValue){document.getElementById('formMessage').textContent=t('requiredFields');return}
+    const existing=editingId?requirements.find(x=>x.id===editingId):null;
+    const titleI18n={en:fd.get('titleEn').trim(),uk:fd.get('titleUk').trim(),pt:fd.get('titlePt').trim()};
+    const descriptionI18n={en:fd.get('descriptionEn').trim(),uk:fd.get('descriptionUk').trim(),pt:fd.get('descriptionPt').trim()};
+    const r={id:editingId||Date.now(),isUserAdded:existing?Boolean(existing.isUserAdded):true,planYear:Number(fd.get('needByDate').slice(0,4)),title:titleI18n.en,description:descriptionI18n.en,titleI18n,descriptionI18n,department:fd.get('department'),segment:fd.get('segment'),estimatedValue:Number(fd.get('estimatedValue')),currency:fd.get('currency'),needByDate:fd.get('needByDate'),criticality:fd.get('criticality'),buyingChannel:fd.get('buyingChannel'),supplier:fd.get('supplier').trim()};
+    if(Object.values(titleI18n).some(x=>!x)||Object.values(descriptionI18n).some(x=>!x)||!r.needByDate||!r.estimatedValue){document.getElementById('formMessage').textContent=t('requiredFieldsAllLanguages');return}
     if(editingId){
-      requirements=requirements.map(x=>x.id===editingId?{...r,aggregationGroup:x.aggregationGroup||null}:x); logActivity('edited',r.title); document.getElementById('formMessage').textContent=t('updated');
+      requirements=requirements.map(x=>x.id===editingId?{...x,...r,aggregationGroup:x.aggregationGroup||null}:x); logActivity('edited',titleFor(r)); document.getElementById('formMessage').textContent=t('updated');
     }else{
-      requirements.unshift(r); logActivity('added',r.title); document.getElementById('formMessage').textContent=t('addedAggregationCheck');
+      requirements.unshift(r); logActivity('added',titleFor(r)); document.getElementById('formMessage').textContent=t('addedAggregationCheck');
     }
     endEdit(); f.reset(); populateSelects(); planRefreshed=false; render(); document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'});
   });
   document.getElementById('requirementForm').addEventListener('reset',()=>{setTimeout(()=>{document.getElementById('formMessage').textContent='';endEdit()},0)});
-  document.getElementById('resetPlan').addEventListener('click',()=>{if(!confirm(t('confirmReset')))return;requirements=window.SAMPLE_REQUIREMENTS.map(x=>({...x}));aggregationDecisions.clear();nextAggregationNo=1;editingId=null;planRefreshed=false;fxRates.USD=null;fxRates.GBP=null;document.getElementById('fxUSD').value='';document.getElementById('fxGBP').value='';logActivity('reset','');render();});
+  document.getElementById('resetPlan').addEventListener('click',()=>{if(!confirm(t('confirmReset')))return;requirements=window.SAMPLE_REQUIREMENTS.map(x=>({...x,...(window.SAMPLE_REQUIREMENT_I18N?.[x.id]||{})}));aggregationDecisions.clear();nextAggregationNo=1;editingId=null;planRefreshed=false;fxRates.USD=null;fxRates.GBP=null;document.getElementById('fxUSD').value='';document.getElementById('fxGBP').value='';logActivity('reset','');render();});
   document.getElementById('clearActivity').addEventListener('click',()=>{if(!confirm(t('confirmClearActivity')))return;activityLog=[];saveState();renderActivity();});
   document.getElementById('generateAiReview').addEventListener('click',generateAiReview);
   document.getElementById('showAiFacts').addEventListener('click',()=>{const box=document.getElementById('aiFacts'),btn=document.getElementById('showAiFacts');const willShow=box.classList.contains('hidden');box.classList.toggle('hidden',!willShow);btn.textContent=willShow?t('hideAiFacts'):t('showAiFacts');if(willShow)renderAiFacts(calculated());});

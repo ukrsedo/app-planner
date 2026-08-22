@@ -112,6 +112,17 @@ window.I18N = {
     "planDate": "Plan date",
     "title": "Requirement Title",
     "description": "Requirement Description",
+    "multilingualContentTitle": "Requirement wording in all interface languages",
+    "multilingualContentHelp": "Enter each version explicitly. The solution will display and report the version matching the selected interface language.",
+    "titleEn": "Title — English",
+    "titleUk": "Title — Ukrainian",
+    "titlePt": "Title — Portuguese",
+    "descriptionEn": "Description — English",
+    "descriptionUk": "Description — Ukrainian",
+    "descriptionPt": "Description — Portuguese",
+    "requiredFieldsAllLanguages": "Complete the title and description in English, Ukrainian and Portuguese, plus all other required fields.",
+    "multipleDepartments": "Multiple departments",
+    "multipleCategories": "Multiple categories",
     "department": "Department",
     "unspsc": "UNSPSC Segment",
     "value": "Estimated Value",
@@ -269,6 +280,10 @@ window.I18N = {
     "aiError": "AI review could not be generated.",
     "aiFactsHeading": "Structured facts supplied to AI",
     "aiGenerated": "AI commentary generated from the current live plan."
+    ,"aiSectionAttention": "What Needs Attention Now"
+    ,"aiSectionAggregation": "Where Aggregation May Help"
+    ,"aiSectionDecisions": "Decisions Required"
+    ,"aiWhyReviewPrefix": "Why review:"
   },
   "uk": {
     "appTitle": "Річний план закупівель",
@@ -383,6 +398,17 @@ window.I18N = {
     "planDate": "Дата плану",
     "title": "Назва потреби",
     "description": "Опис потреби",
+    "multilingualContentTitle": "Формулювання потреби всіма мовами інтерфейсу",
+    "multilingualContentHelp": "Введіть кожну мовну версію окремо. Рішення показуватиме у плані та звіті мову, обрану в інтерфейсі.",
+    "titleEn": "Назва — англійською",
+    "titleUk": "Назва — українською",
+    "titlePt": "Назва — португальською",
+    "descriptionEn": "Опис — англійською",
+    "descriptionUk": "Опис — українською",
+    "descriptionPt": "Опис — португальською",
+    "requiredFieldsAllLanguages": "Заповніть назву й опис англійською, українською та португальською, а також усі інші обов’язкові поля.",
+    "multipleDepartments": "Кілька підрозділів",
+    "multipleCategories": "Кілька категорій",
     "department": "Підрозділ",
     "unspsc": "Сегмент UNSPSC",
     "value": "Орієнтовна вартість",
@@ -540,6 +566,10 @@ window.I18N = {
     "aiError": "Не вдалося сформувати ШІ-звіт.",
     "aiFactsHeading": "Дані, передані ШІ",
     "aiGenerated": "ШІ-звіт сформовано на основі поточного плану."
+    ,"aiSectionAttention": "Що потребує уваги зараз"
+    ,"aiSectionAggregation": "Де варто розглянути поєднання потреб"
+    ,"aiSectionDecisions": "Необхідні рішення"
+    ,"aiWhyReviewPrefix": "Чому варто розглянути:"
   },
   "pt": {
     "appTitle": "Plano Anual de Compras",
@@ -654,6 +684,17 @@ window.I18N = {
     "planDate": "Data do plano",
     "title": "Título da Necessidade",
     "description": "Descrição da Necessidade",
+    "multilingualContentTitle": "Texto da necessidade em todas as línguas da interface",
+    "multilingualContentHelp": "Introduza cada versão separadamente. O plano e o relatório mostrarão a língua selecionada na interface.",
+    "titleEn": "Título — inglês",
+    "titleUk": "Título — ucraniano",
+    "titlePt": "Título — português",
+    "descriptionEn": "Descrição — inglês",
+    "descriptionUk": "Descrição — ucraniano",
+    "descriptionPt": "Descrição — português",
+    "requiredFieldsAllLanguages": "Preencha o título e a descrição em inglês, ucraniano e português, além dos restantes campos obrigatórios.",
+    "multipleDepartments": "Vários departamentos",
+    "multipleCategories": "Várias categorias",
     "department": "Departamento",
     "unspsc": "Segmento UNSPSC",
     "value": "Valor Estimado",
@@ -811,5 +852,9 @@ window.I18N = {
     "aiError": "Não foi possível gerar o relatório de IA.",
     "aiFactsHeading": "Dados enviados à IA",
     "aiGenerated": "Relatório de IA gerado a partir do plano atual."
+    ,"aiSectionAttention": "O que precisa de atenção agora"
+    ,"aiSectionAggregation": "Onde deve ser considerada a combinação de necessidades"
+    ,"aiSectionDecisions": "Decisões necessárias"
+    ,"aiWhyReviewPrefix": "Por que deve ser analisado:"
   }
 };
