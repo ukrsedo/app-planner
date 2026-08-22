@@ -644,8 +644,7 @@
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&!x.isAggregation); if(!r)return; editingId=id;
     const f=document.getElementById('requirementForm');
-    f.titleEn.value=r.titleI18n?.en||r.title||''; f.titleUk.value=r.titleI18n?.uk||''; f.titlePt.value=r.titleI18n?.pt||'';
-    f.descriptionEn.value=r.descriptionI18n?.en||r.description||''; f.descriptionUk.value=r.descriptionI18n?.uk||''; f.descriptionPt.value=r.descriptionI18n?.pt||'';
+    f.title.value=titleFor(r); f.description.value=descriptionFor(r);
     f.department.value=r.department; f.segment.value=r.segment; f.estimatedValue.value=r.estimatedValue; f.currency.value=r.currency; f.needByDate.value=r.needByDate; f.criticality.value=r.criticality; f.buyingChannel.value=r.buyingChannel; f.supplier.value=r.supplier||'';
     document.getElementById('formHeading').textContent=t('editRequirement'); document.getElementById('submitRequirement').textContent=t('saveChanges');
     document.querySelector('.form-section').scrollIntoView({behavior:'smooth',block:'start'});
@@ -658,6 +657,17 @@
     logActivity('deleted',titleFor(r)); saveState(); render();
   }
 
+  async function translateRequirement(title,description){
+    if(!cfg.aiEndpoint) throw new Error('Translation endpoint is not configured');
+    const endpoint=cfg.aiEndpoint.replace(/\/review\/?$/,'/translate');
+    const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sourceLanguage:lang,title,description})});
+    if(!response.ok) throw new Error(`Translation HTTP ${response.status}`);
+    const data=await response.json();
+    const translations=data.translations;
+    if(!translations||!['en','uk','pt'].every(code=>translations[code]?.title&&translations[code]?.description)) throw new Error('Incomplete translations');
+    return translations;
+  }
+
   document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;saveState();applyTranslations()}));
   planDateEl.addEventListener('change',()=>{planRefreshed=false;render()});
   document.getElementById('refreshPlanButton').addEventListener('click',()=>{planRefreshed=true;render();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})});
@@ -668,19 +678,24 @@
   ['USD','GBP'].forEach(currency=>document.getElementById(`fx${currency}`).addEventListener('input',e=>{fxRates[currency]=Number(e.target.value)>0?Number(e.target.value):null;document.getElementById('aggregationFxMessage').textContent=''}));
   ['searchBox','statusFilter','departmentFilter'].forEach(id=>document.getElementById(id).addEventListener(id==='searchBox'?'input':'change',render));
   document.getElementById('resetFilters').addEventListener('click',()=>{document.getElementById('searchBox').value='';document.getElementById('statusFilter').value='';document.getElementById('departmentFilter').value='';render()});
-  document.getElementById('requirementForm').addEventListener('submit',e=>{
+  document.getElementById('requirementForm').addEventListener('submit',async e=>{
     e.preventDefault(); const f=e.currentTarget,fd=new FormData(f);
     const existing=editingId?requirements.find(x=>x.id===editingId):null;
-    const titleI18n={en:fd.get('titleEn').trim(),uk:fd.get('titleUk').trim(),pt:fd.get('titlePt').trim()};
-    const descriptionI18n={en:fd.get('descriptionEn').trim(),uk:fd.get('descriptionUk').trim(),pt:fd.get('descriptionPt').trim()};
+    const sourceTitle=fd.get('title').trim(),sourceDescription=fd.get('description').trim();
+    if(!sourceTitle||!sourceDescription||!fd.get('needByDate')||!Number(fd.get('estimatedValue'))){document.getElementById('formMessage').textContent=t('requiredFields');return}
+    const submit=document.getElementById('submitRequirement');submit.disabled=true;document.getElementById('formMessage').textContent=t('translatingRequirement');
+    let translated;
+    try{translated=await translateRequirement(sourceTitle,sourceDescription)}catch(err){console.error(err);document.getElementById('formMessage').textContent=t('translationError');submit.disabled=false;return}
+    translated[lang]={title:sourceTitle,description:sourceDescription};
+    const titleI18n={en:translated.en.title,uk:translated.uk.title,pt:translated.pt.title};
+    const descriptionI18n={en:translated.en.description,uk:translated.uk.description,pt:translated.pt.description};
     const r={id:editingId||Date.now(),isUserAdded:existing?Boolean(existing.isUserAdded):true,planYear:Number(fd.get('needByDate').slice(0,4)),title:titleI18n.en,description:descriptionI18n.en,titleI18n,descriptionI18n,department:fd.get('department'),segment:fd.get('segment'),estimatedValue:Number(fd.get('estimatedValue')),currency:fd.get('currency'),needByDate:fd.get('needByDate'),criticality:fd.get('criticality'),buyingChannel:fd.get('buyingChannel'),supplier:fd.get('supplier').trim()};
-    if(Object.values(titleI18n).some(x=>!x)||Object.values(descriptionI18n).some(x=>!x)||!r.needByDate||!r.estimatedValue){document.getElementById('formMessage').textContent=t('requiredFieldsAllLanguages');return}
     if(editingId){
       requirements=requirements.map(x=>x.id===editingId?{...x,...r,aggregationGroup:x.aggregationGroup||null}:x); logActivity('edited',titleFor(r)); document.getElementById('formMessage').textContent=t('updated');
     }else{
       requirements.unshift(r); logActivity('added',titleFor(r)); document.getElementById('formMessage').textContent=t('addedAggregationCheck');
     }
-    endEdit(); f.reset(); populateSelects(); planRefreshed=false; render(); document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'});
+    submit.disabled=false;endEdit(); f.reset(); populateSelects(); planRefreshed=false; render(); document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'});
   });
   document.getElementById('requirementForm').addEventListener('reset',()=>{setTimeout(()=>{document.getElementById('formMessage').textContent='';endEdit()},0)});
   document.getElementById('resetPlan').addEventListener('click',()=>{if(!confirm(t('confirmReset')))return;requirements=window.SAMPLE_REQUIREMENTS.map(x=>({...x,...(window.SAMPLE_REQUIREMENT_I18N?.[x.id]||{})}));aggregationDecisions.clear();nextAggregationNo=1;editingId=null;planRefreshed=false;fxRates.USD=null;fxRates.GBP=null;document.getElementById('fxUSD').value='';document.getElementById('fxGBP').value='';logActivity('reset','');render();});
@@ -690,6 +705,7 @@
   const main=document.querySelector('main.container');
   [
     document.getElementById('solutionIntro'),
+    document.querySelector('.demo-guide'),
     document.getElementById('refreshSection'),
     document.getElementById('planSection'),
     document.querySelector('.form-section'),

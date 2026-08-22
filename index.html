@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Annual Procurement Plan</title>
-  <link rel="stylesheet" href="styles.css?v=22" />
+  <link rel="stylesheet" href="styles.css?v=26" />
 </head>
 <body>
   <header class="topbar">
@@ -27,41 +27,34 @@
     <section class="solution-intro" id="solutionIntro">
       <div class="solution-copy">
         <div class="prod-eyebrow" data-i18n="prodEyebrow"></div>
-        <h2 data-i18n="solutionTitle"></h2>
-        <p data-i18n="solutionIntro"></p>
-        <div class="demo-instructions">
-          <strong data-i18n="howToUseTitle"></strong>
-          <div class="instruction-actions">
-            <button class="instruction-button primary-action" id="ctaRefresh"><span>1</span><strong data-i18n="instructionRefreshTitle"></strong><small data-i18n="howToUse1"></small></button>
-            <button class="instruction-button" id="ctaAdd"><span>2</span><strong data-i18n="instructionAddTitle"></strong><small data-i18n="instructionAddText"></small></button>
-            <a class="instruction-button disabled" id="ctaAggregation" href="#aggregationSection" aria-disabled="true"><span>3</span><strong data-i18n="instructionAggregationTitle"></strong><small data-i18n="howToUse3"></small></a>
-            <a class="instruction-button disabled" id="ctaAi" href="#aiSection" aria-disabled="true"><span>4</span><strong data-i18n="instructionAiTitle"></strong><small data-i18n="howToUse4"></small></a>
-          </div>
+        <h2 data-i18n="commercialTitle"></h2>
+        <p data-i18n="commercialIntro"></p>
+        <div class="commercial-logic">
+          <p data-i18n="commercialDemandLogic"></p>
+          <p data-i18n="commercialRefreshLogic"></p>
+          <p data-i18n="commercialAggregationLogic"></p>
+          <p data-i18n="commercialDeployment"></p>
         </div>
       </div>
 
-      <div class="process-map" aria-label="APP process map">
-        <a class="process-input" href="#planSection">
-          <span data-i18n="processInput"></span><strong id="processTotal">0</strong><small data-i18n="processRequirements"></small>
-        </a>
-        <div class="process-branch">
-          <a class="engine-card refresh-engine" href="#refreshSection">
-            <span class="engine-label" data-i18n="coreEngine"></span>
-            <h3 data-i18n="refreshEngineTitle"></h3>
-            <p data-i18n="refreshEngineText"></p>
-            <div class="engine-metrics"><span><strong id="processOverdue">0</strong> <em data-i18n="overdueShort"></em></span><span><strong id="processRequired">0</strong> <em data-i18n="requiredShort"></em></span><span><strong id="processPipeline">0</strong> <em data-i18n="pipelineShort"></em></span></div>
-          </a>
-          <a class="engine-card aggregation-engine" href="#aggregationSection">
-            <span class="engine-label" data-i18n="coreEngine"></span>
-            <h3 data-i18n="aggregationEngineTitle"></h3>
-            <p data-i18n="aggregationEngineText"></p>
-            <div class="engine-metrics"><span><strong id="processOpportunities">0</strong> <em data-i18n="opportunitiesShort"></em></span><span><strong id="processApproved">0</strong> <em data-i18n="approvedShort"></em></span></div>
-          </a>
-        </div>
-        <div class="process-output-row">
-          <a href="#managementSection"><strong data-i18n="effectivePlanOutput"></strong><span data-i18n="effectivePlanText"></span></a>
-          <a href="#aiSection"><strong data-i18n="aiOutput"></strong><span data-i18n="aiOutputText"></span></a>
-        </div>
+      <div class="sales-flow" aria-label="Solution logic">
+        <div class="sales-flow-card"><span>1</span><strong data-i18n="salesFlowExcelTitle"></strong><small data-i18n="salesFlowExcelText"></small></div>
+        <div class="sales-flow-arrow">→</div>
+        <div class="sales-flow-card refresh"><span>2</span><strong data-i18n="salesFlowRefreshTitle"></strong><small data-i18n="salesFlowRefreshText"></small></div>
+        <div class="sales-flow-arrow">→</div>
+        <div class="sales-flow-card aggregation"><span>3</span><strong data-i18n="salesFlowAggregationTitle"></strong><small data-i18n="salesFlowAggregationText"></small></div>
+        <div class="sales-flow-arrow">→</div>
+        <div class="sales-flow-card"><span>4</span><strong data-i18n="salesFlowOutputTitle"></strong><small data-i18n="salesFlowOutputText"></small></div>
+      </div>
+    </section>
+
+    <section class="section demo-guide">
+      <div class="section-head"><div><h2 data-i18n="howToUseTitle"></h2><p class="section-subtitle" data-i18n="demoGuideIntro"></p></div></div>
+      <div class="instruction-actions">
+        <button class="instruction-button primary-action" id="ctaRefresh"><span>1</span><strong data-i18n="instructionRefreshTitle"></strong><small data-i18n="howToUse1"></small></button>
+        <button class="instruction-button" id="ctaAdd"><span>2</span><strong data-i18n="instructionAddTitle"></strong><small data-i18n="instructionAddText"></small></button>
+        <a class="instruction-button disabled" id="ctaAggregation" href="#aggregationSection" aria-disabled="true"><span>3</span><strong data-i18n="instructionAggregationTitle"></strong><small data-i18n="howToUse3"></small></a>
+        <a class="instruction-button disabled" id="ctaAi" href="#aiSection" aria-disabled="true"><span>4</span><strong data-i18n="instructionAiTitle"></strong><small data-i18n="howToUse4"></small></a>
       </div>
     </section>
 
@@ -129,15 +122,9 @@
       <div class="section-head"><h2 id="formHeading" data-i18n="addNew"></h2><span class="local-badge" data-i18n="storedLocally"></span></div>
       <form id="requirementForm">
         <div class="form-grid">
-          <div class="multilingual-fields span-2">
-            <div class="multilingual-heading"><strong data-i18n="multilingualContentTitle"></strong><span data-i18n="multilingualContentHelp"></span></div>
-            <label><span data-i18n="titleEn"></span><input name="titleEn" required></label>
-            <label><span data-i18n="titleUk"></span><input name="titleUk" required></label>
-            <label><span data-i18n="titlePt"></span><input name="titlePt" required></label>
-            <label><span data-i18n="descriptionEn"></span><textarea name="descriptionEn" rows="3" required></textarea></label>
-            <label><span data-i18n="descriptionUk"></span><textarea name="descriptionUk" rows="3" required></textarea></label>
-            <label><span data-i18n="descriptionPt"></span><textarea name="descriptionPt" rows="3" required></textarea></label>
-          </div>
+          <div class="translation-note span-2"><strong data-i18n="singleLanguageEntryTitle"></strong><span data-i18n="singleLanguageEntryHelp"></span></div>
+          <label><span data-i18n="title"></span><input name="title" required></label>
+          <label class="span-2"><span data-i18n="description"></span><textarea name="description" rows="3" required></textarea></label>
           <label><span data-i18n="department"></span><select name="department" required></select></label>
           <label><span data-i18n="unspsc"></span><select name="segment" required></select></label>
           <label><span data-i18n="criticality"></span><select name="criticality" required></select></label>
@@ -182,6 +169,6 @@
   </main>
   <footer data-i18n="footer"></footer>
 
-  <script src="config.js"></script><script src="translations.js?v=25"></script><script src="sample-data.js"></script><script src="sample-content-i18n.js?v=25"></script><script src="app.js?v=25"></script>
+  <script src="config.js"></script><script src="translations.js?v=26"></script><script src="sample-data.js"></script><script src="sample-content-i18n.js?v=26"></script><script src="app.js?v=26"></script>
 </body>
 </html>
