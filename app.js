@@ -1,7 +1,7 @@
 (() => {
   const cfg = window.APP_CONFIG, dict = window.I18N;
   let lang = cfg.defaultLanguage;
-  const STORAGE_KEY='goodspending.appPlanner.step3.v1';
+  const STORAGE_KEY='goodspending.appPlanner.productionAligned.v1';
   let requirements = window.SAMPLE_REQUIREMENTS.map(x => ({...x}));
   const aggregationDecisions = new Map();
   let nextAggregationNo = 1;
@@ -114,53 +114,71 @@
   function tokens(text){
     return String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(/\s+/).filter(x=>x.length>2&&!stopWords.has(x));
   }
+  function uniqueTokens(text){ return [...new Set(tokens(text))]; }
   function titleSimilarity(a,b){
-    const A=new Set(tokens(a.title)), B=new Set(tokens(b.title));
+    const A=new Set(uniqueTokens(a.title)), B=new Set(uniqueTokens(b.title));
     if(!A.size||!B.size) return 0;
     const common=[...A].filter(x=>B.has(x)).length;
-    return common / Math.min(A.size,B.size);
+    const union=new Set([...A,...B]).size;
+    return union ? common/union : 0;
   }
-  function normalizedTitle(s){ return tokens(s).sort().join(' '); }
+  function normalizedTitle(s){ return uniqueTokens(s).sort().join(' '); }
   function pairScore(a,b){
     const sameTitle = normalizedTitle(a.title) && normalizedTitle(a.title)===normalizedTitle(b.title);
     const sim=titleSimilarity(a,b);
     if(!sameTitle && sim < 0.5) return null;
     if(a.segment!==b.segment && !sameTitle) return null;
-    let score = sameTitle ? 72 : Math.round(sim*52);
+    let score = 0;
     const reasons=[];
-    if(sameTitle){ reasons.push('sameRequirement'); }
-    else if(sim>=0.75){ reasons.push('strongScope'); }
-    else { reasons.push('relatedScope'); }
-    if(a.segment===b.segment){score+=10;reasons.push('sameSegment');}
+    if(sameTitle){score+=82;reasons.push('sameRequirement');}
+    else if(sim>=0.75){score+=45;reasons.push('strongScope');}
+    else {score+=25;reasons.push('relatedScope');}
+    if(a.segment&&b.segment&&a.segment===b.segment){score+=15;reasons.push('sameSegment');}
     const gap=absDaysBetween(a.needByDate,b.needByDate);
-    if(gap<=60){score+=12;reasons.push('timing60');}
-    else if(gap<=120){score+=7;reasons.push('timing120');}
-    if(a.department===b.department){score+=4;reasons.push('sameDepartment');}
-    if(a.supplier&&b.supplier&&a.supplier.toLowerCase()===b.supplier.toLowerCase()){score+=4;reasons.push('sameSupplier');}
+    if(gap<=30){score+=15;reasons.push('timing30');}
+    else if(gap<=60){score+=10;reasons.push('timing60');}
+    else if(gap<=120){score+=2;reasons.push('timing120');}
+    if(a.department&&b.department&&a.department===b.department){score+=5;reasons.push('sameDepartment');}
+    if(a.supplier&&b.supplier&&a.supplier.toLowerCase().trim()===b.supplier.toLowerCase().trim()){score+=5;reasons.push('sameSupplier');}
+    if(a.buyingChannel&&b.buyingChannel&&a.buyingChannel.toLowerCase().trim()===b.buyingChannel.toLowerCase().trim()){score+=10;reasons.push('sameBuyingChannel');}
     return {score:Math.min(100,score),reasons,gap};
   }
 
   function detectAggregation(rows){
-    const links=[];
-    for(let i=0;i<rows.length;i++) for(let j=i+1;j<rows.length;j++){
-      const p=pairScore(rows[i],rows[j]);
-      if(p&&p.score>=65) links.push({a:rows[i].id,b:rows[j].id,...p});
+    const sourceRows=rows.filter(r=>!r.isAggregation);
+    const allPairs=[];
+    for(let i=0;i<sourceRows.length;i++) for(let j=i+1;j<sourceRows.length;j++){
+      const p=pairScore(sourceRows[i],sourceRows[j]);
+      if(p) allPairs.push({a:sourceRows[i].id,b:sourceRows[j].id,...p});
     }
+    const links=allPairs.filter(p=>p.score>=65);
     // connected components turn strong pairwise matches into candidate groups
     const adj=new Map();
     links.forEach(l=>{if(!adj.has(l.a))adj.set(l.a,new Set());if(!adj.has(l.b))adj.set(l.b,new Set());adj.get(l.a).add(l.b);adj.get(l.b).add(l.a)});
-    const byId=new Map(rows.map(r=>[r.id,r])), seen=new Set(), groups=[];
+    const byId=new Map(sourceRows.map(r=>[r.id,r])), seen=new Set(), groups=[];
     for(const id of adj.keys()){
       if(seen.has(id))continue;
       const stack=[id], ids=[]; seen.add(id);
       while(stack.length){const x=stack.pop();ids.push(x);for(const y of adj.get(x)||[])if(!seen.has(y)){seen.add(y);stack.push(y)}}
       if(ids.length<2)continue;
       const members=ids.map(x=>byId.get(x)).filter(Boolean);
-      const groupLinks=links.filter(l=>ids.includes(l.a)&&ids.includes(l.b));
-      const avg=Math.round(groupLinks.reduce((s,l)=>s+l.score,0)/groupLinks.length);
-      const allReasons=[...new Set(groupLinks.flatMap(l=>l.reasons))];
+      let totalPairScore=0,qualifyingPairCount=0,possiblePairCount=0;
+      const allReasons=[];
+      for(let i=0;i<ids.length;i++) for(let j=i+1;j<ids.length;j++){
+        possiblePairCount++;
+        const p=pairScore(byId.get(ids[i]),byId.get(ids[j]));
+        if(!p)continue;
+        totalPairScore+=p.score;
+        if(p.score>=65)qualifyingPairCount++;
+        p.reasons.forEach(reason=>{if(!allReasons.includes(reason))allReasons.push(reason)});
+      }
+      if(!possiblePairCount)continue;
+      const averagePairQuality=totalPairScore/possiblePairCount;
+      const cohesion=qualifyingPairCount/possiblePairCount*100;
+      const groupConfidence=Math.round(averagePairQuality*0.70+cohesion*0.30);
+      if(groupConfidence<80)continue;
       const key=ids.sort((a,b)=>a-b).join('-');
-      groups.push({key,members,score:avg,reasons:allReasons});
+      groups.push({key,members,score:groupConfidence,reasons:allReasons});
     }
     return groups.sort((a,b)=>b.score-a.score || b.members.length-a.members.length);
   }
@@ -173,7 +191,12 @@
   function reasonText(reason){ return t('aggregationReasons')[reason] || reason; }
 
   function renderAggregation(rows){
-    const opportunities=detectAggregation(rows);
+    const liveOpportunities=detectAggregation(rows);
+    const liveKeys=new Set(liveOpportunities.map(o=>o.key));
+    const approvedOpportunities=[...aggregationDecisions.entries()]
+      .filter(([key,state])=>state.decision==='approved'&&state.snapshot&&!liveKeys.has(key))
+      .map(([,state])=>state.snapshot);
+    const opportunities=[...liveOpportunities,...approvedOpportunities];
     const summary=document.getElementById('aggregationSummary'), list=document.getElementById('aggregationList'), empty=document.getElementById('aggregationEmpty');
     const approved=[...aggregationDecisions.values()].filter(x=>x.decision==='approved').length;
     const deferred=[...aggregationDecisions.values()].filter(x=>x.decision==='deferred').length;
@@ -207,9 +230,44 @@
     const existing=aggregationDecisions.get(key);
     let groupId=existing?.groupId;
     if(decision==='approved'&&!groupId) groupId=`AGG-${String(nextAggregationNo++).padStart(3,'0')}`;
-    aggregationDecisions.set(key,{decision,groupId:decision==='approved'?groupId:null});
-    const memberIds=new Set(opp.members.map(r=>r.id));
-    requirements=requirements.map(r=>memberIds.has(r.id)?{...r,aggregationGroup:decision==='approved'?groupId:null}:r);
+    if(decision==='approved'){
+      const currencies=[...new Set(opp.members.map(r=>r.currency))];
+      if(currencies.length!==1||currencies[0]!=='EUR'){
+        alert(t('aggregationFxUnavailable'));
+        return;
+      }
+      const memberIds=new Set(opp.members.map(r=>r.id));
+      const first=opp.members[0];
+      const earliest=[...opp.members].sort((a,b)=>a.needByDate.localeCompare(b.needByDate))[0];
+      const departments=[...new Set(opp.members.map(r=>r.department).filter(Boolean))];
+      const suppliers=[...new Set(opp.members.map(r=>String(r.supplier||'').trim()).filter(Boolean))];
+      const segmentCounts=new Map();
+      opp.members.forEach(r=>{if(r.segment)segmentCounts.set(r.segment,(segmentCounts.get(r.segment)||0)+1)});
+      const rankedSegments=[...segmentCounts.entries()].sort((a,b)=>b[1]-a[1]);
+      const segment=rankedSegments.length===1||rankedSegments[0][1]>rankedSegments[1][1]?rankedSegments[0]?.[0]||'':null;
+      const criticality=opp.members.some(r=>r.criticality==='emergency')?'emergency':opp.members.some(r=>r.criticality==='urgent')?'urgent':'regular';
+      const consolidated={
+        id:Date.now(),
+        isAggregation:true,
+        aggregationGroup:groupId,
+        aggregationOpportunity:key,
+        planYear:first.planYear,
+        title:`Aggregated – ${first.title}`,
+        description:`Approved aggregation ${groupId}. Consolidated from ${opp.members.length} APP requirements.`,
+        department:departments.length===1?departments[0]:null,
+        segment,
+        estimatedValue:opp.members.reduce((sum,r)=>sum+Number(r.estimatedValue||0),0),
+        currency:'EUR',
+        needByDate:earliest.needByDate,
+        criticality,
+        buyingChannel:'publicRfp',
+        supplier:suppliers.length===1?suppliers[0]:''
+      };
+      aggregationDecisions.set(key,{decision,groupId,snapshot:{...opp,members:opp.members.map(r=>({...r}))}});
+      requirements=[consolidated,...requirements.filter(r=>!memberIds.has(r.id))];
+    }else{
+      aggregationDecisions.set(key,{decision,groupId:null});
+    }
     logActivity(decision==='approved'?'approved':decision==='rejected'?'rejected':'deferred', `${groupId||''} ${opp.members.map(r=>r.title).join(' + ')}`.trim());
     saveState(); render();
   }

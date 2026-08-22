@@ -1,6 +1,6 @@
 window.APP_CONFIG = {
   defaultLanguage: 'en',
-  defaultCurrency: 'AED',
+  defaultCurrency: 'EUR',
   aiEndpoint: 'https://app-planner-ai-review.ukrsedo-e2e.workers.dev/review',
   aiTimeoutMs: 45000,
   s2cDays: {
