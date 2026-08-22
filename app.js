@@ -87,7 +87,7 @@
     target.innerHTML=rows.map(r=>`<tr>
       <td><div class="req-title">${escapeHtml(r.title)}</div><div class="muted">${escapeHtml(r.description)}</div>${r.aggregationGroup?`<div class="group-tag">${escapeHtml(r.aggregationGroup)}</div>`:''}</td>
       <td>${t('departments')[r.department]}</td><td>${t('segments')[r.segment]}</td><td>${money(r.estimatedValue,r.currency)}</td>
-      <td>${fmtDate(r.needByDate)}</td><td>${t('channels')[r.buyingChannel]}<div class="muted">S2C: ${r.s2cDays} ${t('days')}</div></td>
+      <td>${fmtDate(r.needByDate)}</td><td>${t('channels')[r.buyingChannel]}<div class="muted">${t('s2cLabel')}: ${r.s2cDays} ${t('days')}</div></td>
       <td>${fmtDate(r.requiredStart)}</td><td class="${r.daysRemaining<0?'days-negative':''}">${r.daysRemaining}</td><td><span class="status ${r.status}">${statusLabel(r.status)}</span></td>
       <td>${r.isUserAdded?`<div class="row-actions"><button class="secondary edit-row" data-id="${r.id}">${t('edit')}</button><button class="secondary delete-row" data-id="${r.id}">${t('delete')}</button></div>`:'—'}</td>
     </tr>`).join('');
