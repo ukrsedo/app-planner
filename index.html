@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Annual Procurement Plan</title>
-  <link rel="stylesheet" href="styles.css?v=20" />
+  <link rel="stylesheet" href="styles.css?v=21" />
 </head>
 <body>
   <header class="topbar">
@@ -31,12 +31,12 @@
         <p data-i18n="solutionIntro"></p>
         <div class="demo-instructions">
           <strong data-i18n="howToUseTitle"></strong>
-          <ol>
-            <li data-i18n="howToUse1"></li>
-            <li data-i18n="howToUse2"></li>
-            <li data-i18n="howToUse3"></li>
-            <li data-i18n="howToUse4"></li>
-          </ol>
+          <div class="instruction-actions">
+            <button class="instruction-button primary-action" id="ctaRefresh"><span>1</span><strong data-i18n="instructionRefreshTitle"></strong><small data-i18n="howToUse1"></small></button>
+            <button class="instruction-button" id="ctaAdd"><span>2</span><strong data-i18n="instructionAddTitle"></strong><small data-i18n="instructionAddText"></small></button>
+            <a class="instruction-button disabled" id="ctaAggregation" href="#aggregationSection" aria-disabled="true"><span>3</span><strong data-i18n="instructionAggregationTitle"></strong><small data-i18n="howToUse3"></small></a>
+            <a class="instruction-button disabled" id="ctaAi" href="#aiSection" aria-disabled="true"><span>4</span><strong data-i18n="instructionAiTitle"></strong><small data-i18n="howToUse4"></small></a>
+          </div>
         </div>
       </div>
 
@@ -68,9 +68,10 @@
     <section class="section refresh-section" id="refreshSection">
       <div class="section-head">
         <div><h2 data-i18n="refreshPlanTitle"></h2><p class="section-subtitle" data-i18n="refreshPlanIntro"></p></div>
-        <label class="plan-date"><span data-i18n="planDate"></span><input type="date" id="planDate"></label>
+        <div class="refresh-controls"><label class="plan-date"><span data-i18n="planDate"></span><input type="date" id="planDate"></label><button class="primary" id="refreshPlanButton" data-i18n="refreshPlanButton"></button></div>
       </div>
-      <div class="kpis" id="kpis"></div>
+      <div class="pre-refresh-state" id="preRefreshState"><strong data-i18n="emptyDashboardTitle"></strong><span data-i18n="emptyDashboardText"></span></div>
+      <div class="kpis hidden" id="kpis"></div>
     </section>
 
     <section class="section management-section" id="managementSection">
@@ -152,6 +153,12 @@
         </div>
         <span class="step-badge">STEP 3</span>
       </div>
+      <div class="aggregation-fx-panel" id="aggregationFxPanel">
+        <div><strong data-i18n="aggregationFxTitle"></strong><span data-i18n="aggregationFxIntro"></span></div>
+        <label>1 USD = <input id="fxUSD" type="number" min="0.000001" step="any" placeholder="—"> EUR</label>
+        <label>1 GBP = <input id="fxGBP" type="number" min="0.000001" step="any" placeholder="—"> EUR</label>
+        <p id="aggregationFxMessage" class="aggregation-fx-message" aria-live="polite"></p>
+      </div>
       <div class="aggregation-summary" id="aggregationSummary"></div>
       <div class="aggregation-list" id="aggregationList"></div>
       <div id="aggregationEmpty" class="empty hidden" data-i18n="noAggregation"></div>
@@ -168,6 +175,6 @@
   </main>
   <footer data-i18n="footer"></footer>
 
-  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js?v=20"></script>
+  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js?v=21"></script>
 </body>
 </html>

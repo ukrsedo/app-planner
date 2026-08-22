@@ -6,6 +6,8 @@
   let nextAggregationNo = 1;
   let activityLog=[];
   let editingId=null;
+  let planRefreshed=false;
+  const fxRates={USD:null,GBP:null};
   const planDateEl = document.getElementById('planDate');
   const today = new Date();
   planDateEl.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
@@ -213,13 +215,17 @@
     const opp=opportunities.find(o=>o.key===key); if(!opp)return;
     const existing=aggregationDecisions.get(key);
     let groupId=existing?.groupId;
-    if(decision==='approved'&&!groupId) groupId=`AGG-${String(nextAggregationNo++).padStart(3,'0')}`;
     if(decision==='approved'){
       const currencies=[...new Set(opp.members.map(r=>r.currency))];
-      if(currencies.length!==1){
-        alert(t('aggregationFxUnavailable'));
+      const isMixedCurrency=currencies.length>1;
+      const missingCurrencies=isMixedCurrency?currencies.filter(c=>c!=='EUR'&&!(Number(fxRates[c])>0)):[];
+      if(missingCurrencies.length){
+        const message=document.getElementById('aggregationFxMessage');
+        message.textContent=fillTemplate(t('aggregationFxMissing'),{currencies:missingCurrencies.join(', ')});
+        document.getElementById('aggregationFxPanel')?.scrollIntoView({behavior:'smooth',block:'center'});
         return;
       }
+      if(!groupId) groupId=`AGG-${String(nextAggregationNo++).padStart(3,'0')}`;
       const memberIds=new Set(opp.members.map(r=>r.id));
       const first=opp.members[0];
       const earliest=[...opp.members].sort((a,b)=>a.needByDate.localeCompare(b.needByDate))[0];
@@ -240,8 +246,10 @@
         description:`Approved aggregation ${groupId}. Consolidated from ${opp.members.length} APP requirements.`,
         department:departments.length===1?departments[0]:null,
         segment,
-        estimatedValue:opp.members.reduce((sum,r)=>sum+Number(r.estimatedValue||0),0),
-        currency:currencies[0],
+        estimatedValue:isMixedCurrency
+          ?opp.members.reduce((sum,r)=>sum+(r.currency==='EUR'?Number(r.estimatedValue||0):Number(r.estimatedValue||0)*Number(fxRates[r.currency])),0)
+          :opp.members.reduce((sum,r)=>sum+Number(r.estimatedValue||0),0),
+        currency:isMixedCurrency?'EUR':currencies[0],
         needByDate:earliest.needByDate,
         criticality,
         buyingChannel:'publicRfp',
@@ -602,17 +610,23 @@
     const pipeline=getPipeline90(rows).all.length;
     const opportunities=detectAggregation(rows);
     const approved=[...aggregationDecisions.values()].filter(x=>x.decision==='approved').length;
-    const values={
+    const values=planRefreshed?{
       processTotal:rows.length,
       processOverdue:count('overdue'),
       processRequired:count('required'),
       processPipeline:pipeline,
       processOpportunities:opportunities.length,
       processApproved:approved
-    };
+    }:{processTotal:'—',processOverdue:'—',processRequired:'—',processPipeline:'—',processOpportunities:'—',processApproved:'—'};
     Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.textContent=value});
   }
-  function render(){ const rows=calculated(); renderProcessMap(rows); renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
+  function updateRefreshState(){
+    document.body.classList.toggle('plan-not-refreshed',!planRefreshed);
+    document.getElementById('preRefreshState')?.classList.toggle('hidden',planRefreshed);
+    document.getElementById('kpis')?.classList.toggle('hidden',!planRefreshed);
+    ['ctaAggregation','ctaAi'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.toggle('disabled',!planRefreshed);el.setAttribute('aria-disabled',String(!planRefreshed))}});
+  }
+  function render(){ const rows=calculated(); updateRefreshState(); renderProcessMap(rows); if(!planRefreshed)return; renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r)return; editingId=id;
@@ -630,7 +644,13 @@
   }
 
   document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;saveState();applyTranslations()}));
-  planDateEl.addEventListener('change',()=>{saveState();render()});
+  planDateEl.addEventListener('change',()=>{planRefreshed=false;render()});
+  document.getElementById('refreshPlanButton').addEventListener('click',()=>{planRefreshed=true;render();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})});
+  document.getElementById('ctaRefresh').addEventListener('click',()=>document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'}));
+  document.getElementById('ctaAdd').addEventListener('click',()=>document.querySelector('.form-section').scrollIntoView({behavior:'smooth',block:'start'}));
+  document.getElementById('ctaAggregation').addEventListener('click',e=>{if(!planRefreshed){e.preventDefault();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})}});
+  document.getElementById('ctaAi').addEventListener('click',e=>{if(!planRefreshed){e.preventDefault();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})}});
+  ['USD','GBP'].forEach(currency=>document.getElementById(`fx${currency}`).addEventListener('input',e=>{fxRates[currency]=Number(e.target.value)>0?Number(e.target.value):null;document.getElementById('aggregationFxMessage').textContent=''}));
   ['searchBox','statusFilter','departmentFilter'].forEach(id=>document.getElementById(id).addEventListener(id==='searchBox'?'input':'change',render));
   document.getElementById('resetFilters').addEventListener('click',()=>{document.getElementById('searchBox').value='';document.getElementById('statusFilter').value='';document.getElementById('departmentFilter').value='';render()});
   document.getElementById('requirementForm').addEventListener('submit',e=>{
@@ -642,10 +662,10 @@
     }else{
       requirements.unshift(r); logActivity('added',r.title); document.getElementById('formMessage').textContent=t('addedAggregationCheck');
     }
-    endEdit(); f.reset(); populateSelects(); saveState(); render(); document.querySelector('.aggregation-section').scrollIntoView({behavior:'smooth',block:'start'});
+    endEdit(); f.reset(); populateSelects(); planRefreshed=false; render(); document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'});
   });
   document.getElementById('requirementForm').addEventListener('reset',()=>{setTimeout(()=>{document.getElementById('formMessage').textContent='';endEdit()},0)});
-  document.getElementById('resetPlan').addEventListener('click',()=>{if(!confirm(t('confirmReset')))return;requirements=window.SAMPLE_REQUIREMENTS.map(x=>({...x}));aggregationDecisions.clear();nextAggregationNo=1;editingId=null;logActivity('reset','');saveState();render();});
+  document.getElementById('resetPlan').addEventListener('click',()=>{if(!confirm(t('confirmReset')))return;requirements=window.SAMPLE_REQUIREMENTS.map(x=>({...x}));aggregationDecisions.clear();nextAggregationNo=1;editingId=null;planRefreshed=false;fxRates.USD=null;fxRates.GBP=null;document.getElementById('fxUSD').value='';document.getElementById('fxGBP').value='';logActivity('reset','');render();});
   document.getElementById('clearActivity').addEventListener('click',()=>{if(!confirm(t('confirmClearActivity')))return;activityLog=[];saveState();renderActivity();});
   document.getElementById('generateAiReview').addEventListener('click',generateAiReview);
   document.getElementById('showAiFacts').addEventListener('click',()=>{const box=document.getElementById('aiFacts'),btn=document.getElementById('showAiFacts');const willShow=box.classList.contains('hidden');box.classList.toggle('hidden',!willShow);btn.textContent=willShow?t('hideAiFacts'):t('showAiFacts');if(willShow)renderAiFacts(calculated());});
