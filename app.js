@@ -1,7 +1,6 @@
 (() => {
   const cfg = window.APP_CONFIG, dict = window.I18N;
   let lang = cfg.defaultLanguage;
-  const STORAGE_KEY='goodspending.appPlanner.productionAligned.v1';
   let requirements = window.SAMPLE_REQUIREMENTS.map(x => ({...x}));
   const aggregationDecisions = new Map();
   let nextAggregationNo = 1;
@@ -11,23 +10,8 @@
   const today = new Date();
   planDateEl.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
-  function loadState(){
-    try{
-      const raw=localStorage.getItem(STORAGE_KEY); if(!raw)return;
-      const state=JSON.parse(raw);
-      if(Array.isArray(state.requirements)) requirements=state.requirements;
-      if(Array.isArray(state.aggregationDecisions)) state.aggregationDecisions.forEach(([k,v])=>aggregationDecisions.set(k,v));
-      if(Number.isFinite(state.nextAggregationNo)) nextAggregationNo=state.nextAggregationNo;
-      if(Array.isArray(state.activityLog)) activityLog=state.activityLog;
-      if(state.planDate) planDateEl.value=state.planDate;
-      if(state.lang&&dict[state.lang]) lang=state.lang;
-    }catch(e){console.warn('Could not load local APP state',e)}
-  }
-  function saveState(){
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({requirements,aggregationDecisions:[...aggregationDecisions.entries()],nextAggregationNo,activityLog,planDate:planDateEl.value,lang}));}catch(e){console.warn('Could not save local APP state',e)}
-  }
-  function logActivity(action,detail){ activityLog.unshift({id:Date.now()+Math.random(),ts:new Date().toISOString(),action,detail}); activityLog=activityLog.slice(0,100); saveState(); }
-  loadState();
+  function saveState(){ /* Demo state intentionally lasts only until the page is reloaded. */ }
+  function logActivity(action,detail){ activityLog.unshift({id:Date.now()+Math.random(),ts:new Date().toISOString(),action,detail}); activityLog=activityLog.slice(0,100); }
 
   const t = key => key.split('.').reduce((o,k)=>o?.[k], dict[lang]) ?? key;
   const parseISO = s => { const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)); };
@@ -232,7 +216,7 @@
     if(decision==='approved'&&!groupId) groupId=`AGG-${String(nextAggregationNo++).padStart(3,'0')}`;
     if(decision==='approved'){
       const currencies=[...new Set(opp.members.map(r=>r.currency))];
-      if(currencies.length!==1||currencies[0]!=='EUR'){
+      if(currencies.length!==1){
         alert(t('aggregationFxUnavailable'));
         return;
       }
@@ -257,7 +241,7 @@
         department:departments.length===1?departments[0]:null,
         segment,
         estimatedValue:opp.members.reduce((sum,r)=>sum+Number(r.estimatedValue||0),0),
-        currency:'EUR',
+        currency:currencies[0],
         needByDate:earliest.needByDate,
         criticality,
         buyingChannel:'publicRfp',
@@ -613,7 +597,22 @@
     const actionKey={added:'activityAdded',edited:'activityEdited',deleted:'activityDeleted',approved:'activityApproved',rejected:'activityRejected',deferred:'activityDeferred',reset:'activityReset'};
     list.innerHTML=activityLog.map(x=>`<div class="activity-item"><div class="activity-time">${new Intl.DateTimeFormat(lang==='uk'?'uk-UA':lang==='pt'?'pt-PT':'en-GB',{dateStyle:'medium',timeStyle:'short'}).format(new Date(x.ts))}</div><div class="activity-action">${escapeHtml(t(actionKey[x.action]||x.action))}</div><div class="activity-detail">${escapeHtml(x.detail||'')}</div></div>`).join('');
   }
-  function render(){ const rows=calculated(); renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
+  function renderProcessMap(rows){
+    const count=status=>rows.filter(r=>r.status===status).length;
+    const pipeline=getPipeline90(rows).all.length;
+    const opportunities=detectAggregation(rows);
+    const approved=[...aggregationDecisions.values()].filter(x=>x.decision==='approved').length;
+    const values={
+      processTotal:rows.length,
+      processOverdue:count('overdue'),
+      processRequired:count('required'),
+      processPipeline:pipeline,
+      processOpportunities:opportunities.length,
+      processApproved:approved
+    };
+    Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.textContent=value});
+  }
+  function render(){ const rows=calculated(); renderProcessMap(rows); renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&x.isUserAdded); if(!r)return; editingId=id;
@@ -650,5 +649,16 @@
   document.getElementById('clearActivity').addEventListener('click',()=>{if(!confirm(t('confirmClearActivity')))return;activityLog=[];saveState();renderActivity();});
   document.getElementById('generateAiReview').addEventListener('click',generateAiReview);
   document.getElementById('showAiFacts').addEventListener('click',()=>{const box=document.getElementById('aiFacts'),btn=document.getElementById('showAiFacts');const willShow=box.classList.contains('hidden');box.classList.toggle('hidden',!willShow);btn.textContent=willShow?t('hideAiFacts'):t('showAiFacts');if(willShow)renderAiFacts(calculated());});
+  const main=document.querySelector('main.container');
+  [
+    document.getElementById('solutionIntro'),
+    document.getElementById('refreshSection'),
+    document.getElementById('planSection'),
+    document.querySelector('.form-section'),
+    document.getElementById('aggregationSection'),
+    document.getElementById('managementSection'),
+    document.getElementById('aiSection'),
+    document.querySelector('.activity-section')
+  ].filter(Boolean).forEach(section=>main.appendChild(section));
   applyTranslations();
 })();

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Annual Procurement Plan</title>
-  <link rel="stylesheet" href="styles.css?v=19" />
+  <link rel="stylesheet" href="styles.css?v=20" />
 </head>
 <body>
   <header class="topbar">
@@ -24,70 +24,56 @@
   </header>
 
   <main class="container">
-    <section class="prod-preamble">
-      <div class="prod-eyebrow" data-i18n="prodEyebrow"></div>
-      <h2 data-i18n="prodTitle"></h2>
-      <p class="prod-intro" data-i18n="prodIntro"></p>
-
-      <div class="prod-workflow" aria-label="Production workflow">
-        <div class="prod-step">
-          <div class="prod-step-no">1</div>
-          <div class="prod-step-copy">
-            <strong data-i18n="prodStep1Title"></strong>
-            <span data-i18n="prodStep1Text"></span>
-          </div>
-        </div>
-        <div class="prod-arrow">→</div>
-        <div class="prod-step">
-          <div class="prod-step-no">2</div>
-          <div class="prod-step-copy">
-            <strong data-i18n="prodStep2Title"></strong>
-            <span data-i18n="prodStep2Text"></span>
-          </div>
-        </div>
-        <div class="prod-arrow">→</div>
-        <div class="prod-step">
-          <div class="prod-step-no">3</div>
-          <div class="prod-step-copy">
-            <strong data-i18n="prodStep3Title"></strong>
-            <span data-i18n="prodStep3Text"></span>
-          </div>
-        </div>
-        <div class="prod-arrow">→</div>
-        <div class="prod-step">
-          <div class="prod-step-no">4</div>
-          <div class="prod-step-copy">
-            <strong data-i18n="prodStep4Title"></strong>
-            <span data-i18n="prodStep4Text"></span>
-          </div>
+    <section class="solution-intro" id="solutionIntro">
+      <div class="solution-copy">
+        <div class="prod-eyebrow" data-i18n="prodEyebrow"></div>
+        <h2 data-i18n="solutionTitle"></h2>
+        <p data-i18n="solutionIntro"></p>
+        <div class="demo-instructions">
+          <strong data-i18n="howToUseTitle"></strong>
+          <ol>
+            <li data-i18n="howToUse1"></li>
+            <li data-i18n="howToUse2"></li>
+            <li data-i18n="howToUse3"></li>
+            <li data-i18n="howToUse4"></li>
+          </ol>
         </div>
       </div>
 
-      <div class="prod-lower">
-        <div class="prod-notice" data-i18n="sampleNotice"></div>
-        <div class="prod-features">
-          <h3 data-i18n="prodIncludesTitle"></h3>
-          <ul>
-            <li data-i18n="prodFeatureData"></li>
-            <li data-i18n="prodFeatureAudit"></li>
-            <li data-i18n="prodFeatureRules"></li>
-            <li data-i18n="prodFeatureIntegration"></li>
-          </ul>
+      <div class="process-map" aria-label="APP process map">
+        <a class="process-input" href="#planSection">
+          <span data-i18n="processInput"></span><strong id="processTotal">0</strong><small data-i18n="processRequirements"></small>
+        </a>
+        <div class="process-branch">
+          <a class="engine-card refresh-engine" href="#refreshSection">
+            <span class="engine-label" data-i18n="coreEngine"></span>
+            <h3 data-i18n="refreshEngineTitle"></h3>
+            <p data-i18n="refreshEngineText"></p>
+            <div class="engine-metrics"><span><strong id="processOverdue">0</strong> <em data-i18n="overdueShort"></em></span><span><strong id="processRequired">0</strong> <em data-i18n="requiredShort"></em></span><span><strong id="processPipeline">0</strong> <em data-i18n="pipelineShort"></em></span></div>
+          </a>
+          <a class="engine-card aggregation-engine" href="#aggregationSection">
+            <span class="engine-label" data-i18n="coreEngine"></span>
+            <h3 data-i18n="aggregationEngineTitle"></h3>
+            <p data-i18n="aggregationEngineText"></p>
+            <div class="engine-metrics"><span><strong id="processOpportunities">0</strong> <em data-i18n="opportunitiesShort"></em></span><span><strong id="processApproved">0</strong> <em data-i18n="approvedShort"></em></span></div>
+          </a>
+        </div>
+        <div class="process-output-row">
+          <a href="#managementSection"><strong data-i18n="effectivePlanOutput"></strong><span data-i18n="effectivePlanText"></span></a>
+          <a href="#aiSection"><strong data-i18n="aiOutput"></strong><span data-i18n="aiOutputText"></span></a>
         </div>
       </div>
-
-      <div class="prod-cta" data-i18n="prodCta"></div>
     </section>
 
-    <section class="section">
+    <section class="section refresh-section" id="refreshSection">
       <div class="section-head">
-        <h2 data-i18n="overview"></h2>
+        <div><h2 data-i18n="refreshPlanTitle"></h2><p class="section-subtitle" data-i18n="refreshPlanIntro"></p></div>
         <label class="plan-date"><span data-i18n="planDate"></span><input type="date" id="planDate"></label>
       </div>
       <div class="kpis" id="kpis"></div>
     </section>
 
-    <section class="section management-section">
+    <section class="section management-section" id="managementSection">
       <div class="section-head">
         <div>
           <h2 data-i18n="managementReview"></h2>
@@ -98,7 +84,7 @@
       <div id="managementReview" class="management-review"></div>
     </section>
 
-    <section class="section ai-review-section">
+    <section class="section ai-review-section" id="aiSection">
       <div class="section-head">
         <div>
           <h2 data-i18n="aiReview"></h2>
@@ -119,7 +105,7 @@
       <div class="ai-guardrail" data-i18n="aiGuardrail"></div>
     </section>
 
-    <section class="section">
+    <section class="section" id="planSection">
       <div class="section-head"><h2 data-i18n="procurementPlan"></h2></div>
       <div class="toolbar">
         <input id="searchBox" type="search" data-i18n-placeholder="search" />
@@ -158,7 +144,7 @@
       </form>
     </section>
 
-    <section class="section aggregation-section">
+    <section class="section aggregation-section" id="aggregationSection">
       <div class="section-head">
         <div>
           <h2 data-i18n="aggregation"></h2>
@@ -182,6 +168,6 @@
   </main>
   <footer data-i18n="footer"></footer>
 
-  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js?v=19"></script>
+  <script src="config.js"></script><script src="translations.js"></script><script src="sample-data.js"></script><script src="app.js?v=20"></script>
 </body>
 </html>
