@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Annual Procurement Plan</title>
-  <link rel="stylesheet" href="styles.css?v=26" />
+  <link rel="stylesheet" href="styles.css?v=27" />
 </head>
 <body>
   <header class="topbar">
@@ -58,7 +58,8 @@
       </div>
     </section>
 
-    <section class="section refresh-section" id="refreshSection">
+    <section class="section refresh-section attention-step-section" id="refreshSection">
+      <span class="attention-step-marker" aria-hidden="true">1</span>
       <div class="section-head">
         <div><h2 data-i18n="refreshPlanTitle"></h2><p class="section-subtitle" data-i18n="refreshPlanIntro"></p></div>
         <div class="refresh-controls"><label class="plan-date"><span data-i18n="planDate"></span><input type="date" id="planDate"></label><button class="primary" id="refreshPlanButton" data-i18n="refreshPlanButton"></button></div>
@@ -73,18 +74,17 @@
           <h2 data-i18n="managementReview"></h2>
           <p class="section-subtitle" data-i18n="managementIntro"></p>
         </div>
-        <span class="step-badge">STEP 4</span>
       </div>
       <div id="managementReview" class="management-review"></div>
     </section>
 
-    <section class="section ai-review-section" id="aiSection">
+    <section class="section ai-review-section attention-step-section" id="aiSection">
+      <span class="attention-step-marker" aria-hidden="true">4</span>
       <div class="section-head">
         <div>
           <h2 data-i18n="aiReview"></h2>
           <p class="section-subtitle" data-i18n="aiReviewIntro"></p>
         </div>
-        <span class="step-badge">STEP 5</span>
       </div>
       <div class="ai-review-toolbar">
         <button class="primary" id="generateAiReview" data-i18n="generateAiReview"></button>
@@ -99,7 +99,8 @@
       <div class="ai-guardrail" data-i18n="aiGuardrail"></div>
     </section>
 
-    <section class="section" id="planSection">
+    <section class="section attention-step-section" id="planSection">
+      <span class="attention-step-marker" aria-hidden="true">2</span>
       <div class="section-head"><h2 data-i18n="procurementPlan"></h2></div>
       <div class="toolbar">
         <input id="searchBox" type="search" data-i18n-placeholder="search" />
@@ -139,13 +140,13 @@
       </form>
     </section>
 
-    <section class="section aggregation-section" id="aggregationSection">
+    <section class="section aggregation-section attention-step-section" id="aggregationSection">
+      <span class="attention-step-marker" aria-hidden="true">3</span>
       <div class="section-head">
         <div>
           <h2 data-i18n="aggregation"></h2>
           <p class="section-subtitle" data-i18n="aggregationIntro"></p>
         </div>
-        <span class="step-badge">STEP 3</span>
       </div>
       <div class="aggregation-fx-panel" id="aggregationFxPanel">
         <div><strong data-i18n="aggregationFxTitle"></strong><span data-i18n="aggregationFxIntro"></span></div>
@@ -169,6 +170,6 @@
   </main>
   <footer data-i18n="footer"></footer>
 
-  <script src="config.js"></script><script src="translations.js?v=26"></script><script src="sample-data.js"></script><script src="sample-content-i18n.js?v=26"></script><script src="app.js?v=26"></script>
+  <script src="config.js"></script><script src="translations.js?v=27"></script><script src="sample-data.js"></script><script src="sample-content-i18n.js?v=26"></script><script src="app.js?v=27"></script>
 </body>
 </html>

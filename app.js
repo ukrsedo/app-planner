@@ -637,7 +637,7 @@
     document.body.classList.toggle('plan-not-refreshed',!planRefreshed);
     document.getElementById('preRefreshState')?.classList.toggle('hidden',planRefreshed);
     document.getElementById('kpis')?.classList.toggle('hidden',!planRefreshed);
-    ['ctaAggregation','ctaAi'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.toggle('disabled',!planRefreshed);el.setAttribute('aria-disabled',String(!planRefreshed))}});
+    ['ctaAdd','ctaAggregation','ctaAi'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.toggle('disabled',!planRefreshed);el.setAttribute('aria-disabled',String(!planRefreshed))}});
   }
   function render(){ const rows=calculated(); updateRefreshState(); renderProcessMap(rows); if(!planRefreshed)return; renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
@@ -672,7 +672,7 @@
   planDateEl.addEventListener('change',()=>{planRefreshed=false;render()});
   document.getElementById('refreshPlanButton').addEventListener('click',()=>{planRefreshed=true;render();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})});
   document.getElementById('ctaRefresh').addEventListener('click',()=>document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'}));
-  document.getElementById('ctaAdd').addEventListener('click',()=>document.querySelector('.form-section').scrollIntoView({behavior:'smooth',block:'start'}));
+  document.getElementById('ctaAdd').addEventListener('click',()=>{if(!planRefreshed){document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'});return}document.getElementById('planSection').scrollIntoView({behavior:'smooth',block:'start'})});
   document.getElementById('ctaAggregation').addEventListener('click',e=>{if(!planRefreshed){e.preventDefault();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})}});
   document.getElementById('ctaAi').addEventListener('click',e=>{if(!planRefreshed){e.preventDefault();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})}});
   ['USD','GBP'].forEach(currency=>document.getElementById(`fx${currency}`).addEventListener('input',e=>{fxRates[currency]=Number(e.target.value)>0?Number(e.target.value):null;document.getElementById('aggregationFxMessage').textContent=''}));
