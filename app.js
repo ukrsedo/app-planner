@@ -637,14 +637,14 @@
     document.body.classList.toggle('plan-not-refreshed',!planRefreshed);
     document.getElementById('preRefreshState')?.classList.toggle('hidden',planRefreshed);
     document.getElementById('kpis')?.classList.toggle('hidden',!planRefreshed);
-    ['ctaAdd','ctaAggregation','ctaAi'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.toggle('disabled',!planRefreshed);el.setAttribute('aria-disabled',String(!planRefreshed))}});
+    ['ctaAggregation','ctaAi'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.toggle('disabled',!planRefreshed);el.setAttribute('aria-disabled',String(!planRefreshed))}});
   }
   function render(){ const rows=calculated(); updateRefreshState(); renderProcessMap(rows); if(!planRefreshed)return; renderKpis(rows); renderManagementReview(rows); renderDeterministicAiSummary(rows); renderTable(filteredRows(rows)); renderAggregation(rows); renderActivity(); if(!document.getElementById('aiFacts')?.classList.contains('hidden')) renderAiFacts(rows); }
 
   function startEdit(id){
     const r=requirements.find(x=>x.id===id&&!x.isAggregation); if(!r)return; editingId=id;
     const f=document.getElementById('requirementForm');
-    f.title.value=titleFor(r); f.description.value=descriptionFor(r);
+    f.elements.namedItem('title').value=titleFor(r); f.elements.namedItem('description').value=descriptionFor(r);
     f.department.value=r.department; f.segment.value=r.segment; f.estimatedValue.value=r.estimatedValue; f.currency.value=r.currency; f.needByDate.value=r.needByDate; f.criticality.value=r.criticality; f.buyingChannel.value=r.buyingChannel; f.supplier.value=r.supplier||'';
     document.getElementById('formHeading').textContent=t('editRequirement'); document.getElementById('submitRequirement').textContent=t('saveChanges');
     document.querySelector('.form-section').scrollIntoView({behavior:'smooth',block:'start'});
@@ -672,7 +672,7 @@
   planDateEl.addEventListener('change',()=>{planRefreshed=false;render()});
   document.getElementById('refreshPlanButton').addEventListener('click',()=>{planRefreshed=true;render();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})});
   document.getElementById('ctaRefresh').addEventListener('click',()=>document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'}));
-  document.getElementById('ctaAdd').addEventListener('click',()=>{if(!planRefreshed){document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'});return}document.getElementById('planSection').scrollIntoView({behavior:'smooth',block:'start'})});
+  document.getElementById('ctaAdd').addEventListener('click',()=>document.querySelector('.form-section').scrollIntoView({behavior:'smooth',block:'start'}));
   document.getElementById('ctaAggregation').addEventListener('click',e=>{if(!planRefreshed){e.preventDefault();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})}});
   document.getElementById('ctaAi').addEventListener('click',e=>{if(!planRefreshed){e.preventDefault();document.getElementById('refreshSection').scrollIntoView({behavior:'smooth',block:'start'})}});
   ['USD','GBP'].forEach(currency=>document.getElementById(`fx${currency}`).addEventListener('input',e=>{fxRates[currency]=Number(e.target.value)>0?Number(e.target.value):null;document.getElementById('aggregationFxMessage').textContent=''}));
