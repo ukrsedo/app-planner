@@ -297,6 +297,7 @@ window.I18N = {
     "aiNotConfigured": "AI endpoint is not configured yet.",
     "aiGenerating": "Generating management commentary…",
     "aiError": "AI review could not be generated.",
+    "aiDailyLimit": "The daily limit of 30 AI reviews has been reached. Please try again tomorrow.",
     "aiFactsHeading": "Structured facts supplied to AI",
     "aiGenerated": "AI commentary generated from the current live plan."
     ,"aiSectionAttention": "What Needs Attention Now"
@@ -602,6 +603,7 @@ window.I18N = {
     "aiNotConfigured": "Підключення до ШІ ще не налаштовано.",
     "aiGenerating": "Формується ШІ-звіт…",
     "aiError": "Не вдалося сформувати ШІ-звіт.",
+    "aiDailyLimit": "Денний ліміт у 30 ШІ-звітів вичерпано. Спробуйте знову завтра.",
     "aiFactsHeading": "Дані, передані ШІ",
     "aiGenerated": "ШІ-звіт сформовано на основі поточного плану."
     ,"aiSectionAttention": "Що потребує уваги зараз"
@@ -907,6 +909,7 @@ window.I18N = {
     "aiNotConfigured": "A ligação à IA ainda não está configurada.",
     "aiGenerating": "A gerar comentário de gestão…",
     "aiError": "Não foi possível gerar o relatório de IA.",
+    "aiDailyLimit": "O limite diário de 30 relatórios de IA foi atingido. Tente novamente amanhã.",
     "aiFactsHeading": "Dados enviados à IA",
     "aiGenerated": "Relatório de IA gerado a partir do plano atual."
     ,"aiSectionAttention": "O que precisa de atenção agora"

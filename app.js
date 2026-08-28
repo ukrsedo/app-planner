@@ -603,7 +603,15 @@
     const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),cfg.aiTimeoutMs||45000);
     try{
       const response=await fetch(cfg.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildAiReviewPayload(calculated())),signal:controller.signal});
-      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      if(!response.ok){
+        let errorData={};
+        try{ errorData=await response.json(); }catch{}
+        if(response.status===429 && (errorData.code==='DAILY_LIMIT'||errorData.error==='DAILY_LIMIT')){
+          status.textContent=t('aiDailyLimit');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
       const data=await response.json();
       const text=data.review ?? data.commentary ?? data.analysis ?? data.text ?? data.output;
       if(typeof text!=='string'||!text.trim()) throw new Error('No review text returned');
