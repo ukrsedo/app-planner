@@ -425,7 +425,7 @@ html{scroll-behavior:smooth;scroll-padding-top:92px}
   box-sizing:border-box;
   margin:0 0 28px;
   padding:0;
-  overflow:hidden;
+  overflow:visible;
 }
 .report-section h2{
   margin:0 0 14px;
@@ -498,17 +498,29 @@ html{scroll-behavior:smooth;scroll-padding-top:92px}
 .priority-table th:nth-child(6){width:11%}
 .priority-table th:nth-child(7){width:20%}
 .table-scroll{
+  display:block;
   width:100%;
   max-width:100%;
   overflow-x:auto;
+  overflow-y:hidden;
   -webkit-overflow-scrolling:touch;
+  scrollbar-width:auto;
+  box-sizing:border-box;
+  padding-bottom:4px;
 }
 .pipeline-table{
   table-layout:fixed;
+  width:100%;
+  min-width:720px;
 }
-.pipeline-table th:nth-child(1){width:25%}
-.pipeline-table th:nth-child(2){width:10%}
-.pipeline-table th:nth-child(3){width:65%}
+.pipeline-table th:nth-child(1){width:24%}
+.pipeline-table th:nth-child(2){width:9%}
+.pipeline-table th:nth-child(3){width:67%}
+.pipeline-table td:nth-child(3){
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
 .management-summary{
   padding:18px 20px;
   border:1px solid #cfdbe6;
@@ -544,12 +556,34 @@ html{scroll-behavior:smooth;scroll-padding-top:92px}
 .report-subsection{
   margin-top:18px;
 }
-@media (max-width:900px){
+@media (max-width:1180px){
   .dashboard-grid,
   .concentration-grid{
     grid-template-columns:1fr;
   }
+}
+@media (max-width:900px){
   .pipeline-table{
     table-layout:auto;
+    min-width:680px;
   }
+  .report-section h2{
+    font-size:20px;
+  }
+}
+
+.app-ai-report,
+.app-ai-report *{
+  box-sizing:border-box;
+}
+.app-ai-report{
+  overflow:visible;
+}
+.dashboard-card,
+.concentration-grid > div{
+  min-width:0;
+}
+.report-table td,
+.report-table th{
+  max-width:none;
 }

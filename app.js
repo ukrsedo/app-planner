@@ -590,12 +590,12 @@
     const readiness=(incomplete>0||missingValue>0) ? `
       <div class="report-subsection">
         <h3>${escapeHtml(L.dataReadiness)}</h3>
-        <table class="report-table compact">
+        <div class="table-scroll"><table class="report-table compact">
           <tbody>
             <tr><td>${escapeHtml(L.incomplete)}</td><td class="num">${fmtCount(incomplete)}</td></tr>
             <tr><td>${escapeHtml(L.missingValue)}</td><td class="num">${fmtCount(missingValue)}</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>` : '';
 
     const actions=(aiData?.actions||[]).slice(0,4).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
@@ -608,17 +608,17 @@
           <div class="dashboard-grid">
             <div class="dashboard-card">
               <h3>${escapeHtml(L.planningPosition)}</h3>
-              <table class="report-table">
+              <div class="table-scroll"><table class="report-table">
                 <thead><tr><th>${escapeHtml(L.metric)}</th><th>${escapeHtml(L.value)}</th></tr></thead>
                 <tbody>${metricRows}</tbody>
-              </table>
+              </table></div>
             </div>
             <div class="dashboard-card spend-card">
               <h3>${escapeHtml(L.spend)}</h3>
-              <table class="report-table">
+              <div class="table-scroll"><table class="report-table">
                 <thead><tr><th>${escapeHtml(L.currency)}</th><th>${escapeHtml(L.value)}</th></tr></thead>
                 <tbody>${spendRows}</tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         </section>
@@ -640,10 +640,10 @@
 
         <section class="report-section">
           <h2>${escapeHtml(L.pipeline)}</h2>
-          <table class="report-table pipeline-table">
+          <div class="table-scroll"><table class="report-table pipeline-table">
             <thead><tr><th>${escapeHtml(L.window)}</th><th>${escapeHtml(L.count)}</th><th>${escapeHtml(L.interpretation)}</th></tr></thead>
             <tbody>${pipelineRows}</tbody>
-          </table>
+          </table></div>
         </section>
 
         <section class="report-section">
@@ -651,11 +651,11 @@
           <div class="concentration-grid">
             <div>
               <h3>${escapeHtml(L.topDepartments)}</h3>
-              <table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${deptRows}</tbody></table>
+              <div class="table-scroll"><table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${deptRows}</tbody></table></div>
             </div>
             <div>
               <h3>${escapeHtml(L.topCategories)}</h3>
-              <table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${catRows}</tbody></table>
+              <div class="table-scroll"><table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${catRows}</tbody></table></div>
             </div>
           </div>
           ${aiData?.concentrationInterpretation?`<p class="management-note">${escapeHtml(aiData.concentrationInterpretation)}</p>`:`<p class="management-note muted">${escapeHtml(L.noConcentration)}</p>`}
