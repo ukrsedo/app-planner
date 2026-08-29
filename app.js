@@ -328,24 +328,32 @@
   }
 
   function buildAiReviewPayload(rows){
-    const immediate=rows.filter(r=>r.status==='overdue'||r.status==='required');
     const pipeline90=getPipeline90(rows);
-    const pipeline={
-      days0to30:pipeline90.days0to30.length,
-      days31to60:pipeline90.days31to60.length,
-      days61to90:pipeline90.days61to90.length
-    };
+    const p3160=pipeline90.days31to60;
+    const p6190=pipeline90.days61to90;
+    const actionRequired=rows.filter(r=>r.status==='required');
+    const actionOverdue=rows.filter(r=>r.status==='overdue' && daysBetween(r.needByDate,planDateEl.value)>=0);
+    const needByPassed=rows.filter(r=>daysBetween(r.needByDate,planDateEl.value)<0);
+    const criticalUpcoming=actionRequired.filter(r=>r.criticality==='emergency'||r.criticality==='urgent');
     const next180=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=180);
-    const opportunities=detectAggregation(rows);
-    const aggregation={pending:0,approved:0,rejected:0,deferred:0};
-    opportunities.forEach(o=>{const d=aggregationDecisions.get(o.key)?.decision||'pending'; aggregation[d]=(aggregation[d]||0)+1;});
-    const totalsByCurrency=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
+
+    const totalsByCurrency=rows.reduce((a,r)=>{
+      a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue||0);
+      return a;
+    },{});
+
+    const incomplete=rows.filter(r=>
+      !r.department || !r.segment || !r.buyingChannel || !r.needByDate || !r.criticality ||
+      !Number.isFinite(Number(r.estimatedValue)) || Number(r.estimatedValue)<=0
+    );
+    const missingOrZeroValue=rows.filter(r=>!Number.isFinite(Number(r.estimatedValue))||Number(r.estimatedValue)<=0);
+
     const aiRequirement=r=>({
       id:r.id,
       title:titleFor(r),
       department:departmentFor(r),
       segment:r.segment?t('segments')[r.segment]:t('multipleCategories'),
-      value:r.estimatedValue,
+      value:Number(r.estimatedValue)||0,
       currency:r.currency,
       needByDate:r.needByDate,
       requiredProcurementStart:r.requiredStart,
@@ -353,56 +361,47 @@
       status:statusLabel(r.status),
       criticality:t('criticalities')[r.criticality]
     });
-    const topRequirements=[...rows].filter(r=>r.daysRemaining>=0).sort((a,b)=>b.estimatedValue-a.estimatedValue).slice(0,5).map(aiRequirement);
-    const immediateAttentionRequirements=[...immediate].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
-    const pipeline90Requirements=[...pipeline90.all].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
-    const urgentEmergencyRequirements=rows.filter(r=>r.criticality==='emergency'||r.criticality==='urgent').sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement);
-    const aggregationOpportunities=opportunities.map((o,idx)=>{
-      const state=aggregationDecisions.get(o.key);
-      const decision=state?.decision||'pending';
-      const totalsByCurrency=o.members.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue);return a},{});
-      const needDates=o.members.map(r=>r.needByDate).sort();
-      const departments=[...new Set(o.members.map(departmentFor))];
-      const segments=[...new Set(o.members.map(r=>t('segments')[r.segment]))];
-      return {
-        opportunityId:`OPP-${String(idx+1).padStart(3,'0')}`,
-        opportunityKey:o.key,
-        decision,
-        groupId:state?.groupId||'',
-        confidence:{label:confidence(o.score),score:o.score},
-        rationale:o.reasons.map(reasonText),
-        departments,
-        segments,
-        combinedValueByCurrency:totalsByCurrency,
-        timing:{
-          earliestNeedByDate:needDates[0]||'',
-          latestNeedByDate:needDates[needDates.length-1]||'',
-          spreadDays:needDates.length>1?absDaysBetween(needDates[0],needDates[needDates.length-1]):0
-        },
-        requirements:o.members.map(aiRequirement)
-      };
-    });
-    const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>({department:t('departments')[k],requirements:count}));
-    const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>({category:t('segments')[k],requirements:count}));
+
+    const topDepartments=topCounts(next180,r=>r.department,5)
+      .map(([k,count])=>({department:t('departments')[k],requirements:count}));
+    const topCategories=topCounts(next180,r=>r.segment,5)
+      .map(([k,count])=>({category:t('segments')[k],requirements:count}));
+
     return {
-      task:`Write the complete report only in ${lang==='uk'?'Ukrainian':lang==='pt'?'Portuguese':'English'}. Do not mix languages and do not expose internal field names. Use only the supplied calculated facts. Do not invent facts, approve aggregations, or modify the plan.`,
+      task:`Write the complete management review only in ${lang==='uk'?'Ukrainian':lang==='pt'?'Portuguese':'English'}. Do not mix languages. Use only the supplied calculated facts. Aggregation is outside the scope of this report.`,
       language:lang==='uk'?'Ukrainian':lang==='pt'?'Portuguese':'English',
       planDate:planDateEl.value,
       facts:{
         totalRequirements:rows.length,
-        statuses:{overdue:rows.filter(r=>r.status==='overdue').length,actionRequired:rows.filter(r=>r.status==='required').length,planning:rows.filter(r=>r.status==='planning').length},
-        immediateAttention:immediate.length,
-        pipeline90:pipeline,
+        statuses:{
+          overdue:actionOverdue.length,
+          actionRequired:actionRequired.length,
+          planning:rows.filter(r=>r.status==='planning').length
+        },
+        needByDatePassed:needByPassed.length,
+        pipeline90:{
+          days0to30:actionRequired.length,
+          days31to60:p3160.length,
+          days61to90:p6190.length
+        },
         totalsByCurrency,
-        criticality:{emergency:rows.filter(r=>r.criticality==='emergency').length,urgent:rows.filter(r=>r.criticality==='urgent').length,regular:rows.filter(r=>r.criticality==='regular').length},
-        aggregation,
+        criticality:{
+          emergency:rows.filter(r=>r.criticality==='emergency').length,
+          urgent:rows.filter(r=>r.criticality==='urgent').length,
+          regular:rows.filter(r=>r.criticality==='regular').length
+        },
+        dataReadiness:{
+          incompletePlanningRecords:incomplete.length,
+          missingOrZeroValue:missingOrZeroValue.length
+        },
         topDepartments180Days:topDepartments,
         topCategories180Days:topCategories,
-        topUpcomingRequirements:topRequirements,
-        immediateAttentionRequirements,
-        pipeline90Requirements,
-        urgentEmergencyRequirements,
-        aggregationOpportunities
+        needByDatePassedRequirements:[...needByPassed].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement),
+        actionOverdueRequirements:[...actionOverdue].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement),
+        actionRequiredRequirements:[...actionRequired].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement),
+        pipeline31to60Requirements:[...p3160].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement),
+        pipeline61to90Requirements:[...p6190].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement),
+        criticalUpcomingRequirements:[...criticalUpcoming].sort((a,b)=>a.daysRemaining-b.daysRemaining).map(aiRequirement)
       }
     };
   }
@@ -416,60 +415,40 @@
     const root=document.getElementById('aiDeterministicSummary');
     if(!root)return;
 
-    const overdue=rows.filter(r=>r.status==='overdue').length;
+    const needByPassed=rows.filter(r=>daysBetween(r.needByDate,planDateEl.value)<0).length;
+    const overdue=rows.filter(r=>r.status==='overdue'&&daysBetween(r.needByDate,planDateEl.value)>=0).length;
     const required=rows.filter(r=>r.status==='required').length;
-    const immediate=overdue+required;
     const pipeline=getPipeline90(rows);
-    const p030=pipeline.days0to30.length;
     const p3160=pipeline.days31to60.length;
     const p6190=pipeline.days61to90.length;
+    const totals=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue||0);return a},{});
 
-    let trendKey='pipelineMixed';
-    if(p030<p3160 && p3160<p6190) trendKey='pipelineIncreasing';
-    else if(p030>p3160 && p3160>p6190) trendKey='pipelineDecreasing';
-    else if(p030===p3160 && p3160===p6190) trendKey='pipelineStable';
+    const labels={
+      en:{title:'Executive Planning Dashboard',total:'Total requirements',passed:'Need-by date already passed',overdue:'Procurement start overdue',required:'Action required within 30 days',p3160:'Forward pipeline 31–60 days',p6190:'Forward pipeline 61–90 days',spend:'Spend by currency'},
+      uk:{title:'Огляд стану плану',total:'Усього потреб',passed:'Дата потреби вже минула',overdue:'Початок закупівлі прострочено',required:'Дії потрібні протягом 30 днів',p3160:'Майбутній план 31–60 днів',p6190:'Майбутній план 61–90 днів',spend:'Витрати за валютами'},
+      pt:{title:'Painel Executivo do Plano',total:'Total de necessidades',passed:'Data de necessidade já ultrapassada',overdue:'Início da compra em atraso',required:'Ação necessária nos próximos 30 dias',p3160:'Pipeline 31–60 dias',p6190:'Pipeline 61–90 dias',spend:'Despesa por moeda'}
+    }[lang];
+
+    const metrics=[
+      [labels.total,rows.length],
+      [labels.passed,needByPassed],
+      [labels.overdue,overdue],
+      [labels.required,required],
+      [labels.p3160,p3160],
+      [labels.p6190,p6190]
+    ];
+
+    const currencies=Object.entries(totals)
+      .filter(([,v])=>Number(v)!==0)
+      .map(([c,v])=>`<div class="review-kpi"><span>${escapeHtml(c)}</span><strong>${escapeHtml(money(v,c))}</strong></div>`)
+      .join('');
 
     root.innerHTML=`
       <section class="ai-deterministic-section">
-        <h3>${escapeHtml(t('overallSituation'))}</h3>
-        <div class="ai-signal-grid">
-          <div class="ai-signal-card">
-            <span>${escapeHtml(t('planHealth'))}</span>
-            <strong>${immediate}</strong>
-            <p>${escapeHtml(fillTemplate(t('planHealthDetail'),{overdue,required}))}</p>
-          </div>
-          <div class="ai-signal-card">
-            <span>${escapeHtml(t('forwardPressure'))}</span>
-            <strong>${pipeline.all.length}</strong>
-            <p>${escapeHtml(t('forwardPressureDetail'))}</p>
-          </div>
-          <div class="ai-signal-card ai-signal-wide">
-            <span>${escapeHtml(t('managementImplication'))}</span>
-            <p>${escapeHtml(fillTemplate(t('overallSituationImplication'),{immediate,pipeline:pipeline.all.length}))}</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="ai-deterministic-section">
-        <h3>${escapeHtml(t('whatComingNext'))}</h3>
-        <div class="ai-pipeline-grid">
-          <div class="ai-pipeline-card">
-            <span>0–30 ${escapeHtml(t('daysUnit'))}</span>
-            <strong>${p030}</strong>
-            <p>${escapeHtml(t('pipeline030Meaning'))}</p>
-          </div>
-          <div class="ai-pipeline-card">
-            <span>31–60 ${escapeHtml(t('daysUnit'))}</span>
-            <strong>${p3160}</strong>
-            <p>${escapeHtml(t('pipeline3160Meaning'))}</p>
-          </div>
-          <div class="ai-pipeline-card">
-            <span>61–90 ${escapeHtml(t('daysUnit'))}</span>
-            <strong>${p6190}</strong>
-            <p>${escapeHtml(t('pipeline6190Meaning'))}</p>
-          </div>
-        </div>
-        <div class="ai-trend-line"><strong>${escapeHtml(t('trend'))}:</strong> ${escapeHtml(fillTemplate(t(trendKey),{a:p030,b:p3160,c:p6190}))}</div>
+        <h3>${escapeHtml(labels.title)}</h3>
+        <div class="review-kpi-row">${metrics.map(([label,value])=>`<div class="review-kpi"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`).join('')}</div>
+        <div class="review-sub">${escapeHtml(labels.spend)}</div>
+        <div class="review-kpi-row">${currencies}</div>
       </section>`;
   }
 
@@ -492,9 +471,11 @@
     let current = null;
 
     const sectionRoles = new Map([
-      [t('aiSectionAttention'),'attention'],
-      [t('aiSectionAggregation'),'aggregation'],
-      [t('aiSectionDecisions'),'decisions']
+      [lang==='uk'?'Огляд стану плану':lang==='pt'?'Painel Executivo do Plano':'Executive Planning Dashboard','dashboard'],
+      [lang==='uk'?'Що потребує уваги керівництва':lang==='pt'?'Atenção da Gestão':'Management Attention','attention'],
+      [lang==='uk'?'Майбутній план закупівель':lang==='pt'?'Pipeline Futuro de Compras':'Forward Procurement Pipeline','pipeline'],
+      [lang==='uk'?'Концентрація попиту та готовність даних':lang==='pt'?'Concentração da Procura e Qualidade dos Dados':'Demand Concentration & Data Readiness','concentration'],
+      [lang==='uk'?'Необхідні рішення / дії':lang==='pt'?'Decisões / Ações Necessárias':'Decisions / Actions Required','decisions']
     ]);
 
     for(const raw of lines){
@@ -583,8 +564,10 @@
     root.innerHTML = sections.map(section=>{
       let body='';
       switch(section.role){
+        case 'dashboard': body=renderSnapshot(section.items); break;
         case 'attention': body=renderPriority(section.items); break;
-        case 'aggregation': body=renderAggregation(section.items); break;
+        case 'pipeline': body=renderPipeline(section.items); break;
+        case 'concentration': body=renderPipeline(section.items); break;
         case 'decisions': body=renderActions(section.items); break;
         default: body=renderPipeline(section.items);
       }
