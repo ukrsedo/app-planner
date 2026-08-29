@@ -453,10 +453,14 @@
   }
 
   function renderAiText(text){
+    const root=document.getElementById('aiReviewOutput');
     const raw=String(text||'').trim();
-    if(!raw)return '';
 
-    // Worker is instructed to return HTML only. Sanitize unsafe elements/attributes before rendering.
+    if(!raw){
+      root.innerHTML=`<div class="review-empty">${escapeHtml(t('aiReviewEmpty'))}</div>`;
+      return;
+    }
+
     const tpl=document.createElement('template');
     tpl.innerHTML=raw;
 
@@ -471,7 +475,31 @@
       });
     });
 
-    return `<div class="ai-report-professional">${tpl.innerHTML}</div>`;
+    root.innerHTML=`<div class="ai-report-professional">${tpl.innerHTML}</div>`;
+  }
+
+  async function generateAiReview(){
+    const status=document.getElementById('aiStatus'), btn=document.getElementById('generateAiReview');
+    if(!cfg.aiEndpoint){status.textContent=t('aiNotConfigured');return;}
+    btn.disabled=true; status.textContent=t('aiGenerating');
+    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),cfg.aiTimeoutMs||45000);
+    try{
+      const response=await fetch(cfg.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildAiReviewPayload(calculated())),signal:controller.signal});
+      if(!response.ok){
+        let errorData={};
+        try{ errorData=await response.json(); }catch{}
+        if(response.status===429 && (errorData.code==='DAILY_LIMIT'||errorData.error==='DAILY_LIMIT')){
+          status.textContent=t('aiDailyLimit');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data=await response.json();
+      const text=data.review ?? data.commentary ?? data.analysis ?? data.text ?? data.output;
+      if(typeof text!=='string'||!text.trim()) throw new Error('No review text returned');
+      renderAiText(text); status.textContent=t('aiGenerated');
+    }catch(err){console.error(err);status.textContent=t('aiError');}
+    finally{clearTimeout(timer);btn.disabled=false;}
   }
 
   function renderActivity(){
