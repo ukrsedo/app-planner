@@ -453,154 +453,25 @@
   }
 
   function renderAiText(text){
-    const root=document.getElementById('aiReviewOutput');
-    const clean=String(text||'').trim();
+    const raw=String(text||'').trim();
+    if(!raw)return '';
 
-    if(!clean){
-      root.innerHTML=`<div class="review-empty">${escapeHtml(t('aiReviewEmpty'))}</div>`;
-      return;
-    }
+    // Worker is instructed to return HTML only. Sanitize unsafe elements/attributes before rendering.
+    const tpl=document.createElement('template');
+    tpl.innerHTML=raw;
 
-    const inlineFormat = (s) => {
-      const escaped = escapeHtml(s);
-      return escaped.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-    };
-
-    const lines = clean.split(/\r?\n/);
-    const sections = [];
-    let current = null;
-
-    const sectionRoles = new Map([
-      [lang==='uk'?'Огляд стану плану':lang==='pt'?'Painel Executivo do Plano':'Executive Planning Dashboard','dashboard'],
-      [lang==='uk'?'Що потребує уваги керівництва':lang==='pt'?'Atenção da Gestão':'Management Attention','attention'],
-      [lang==='uk'?'Майбутній план закупівель':lang==='pt'?'Pipeline Futuro de Compras':'Forward Procurement Pipeline','pipeline'],
-      [lang==='uk'?'Концентрація попиту та готовність даних':lang==='pt'?'Concentração da Procura e Qualidade dos Dados':'Demand Concentration & Data Readiness','concentration'],
-      [lang==='uk'?'Необхідні рішення / дії':lang==='pt'?'Decisões / Ações Necessárias':'Decisions / Actions Required','decisions']
-    ]);
-
-    for(const raw of lines){
-      const line = raw.trim();
-
-      if(!line) {
-        if(current) current.items.push({type:'blank'});
-        continue;
-      }
-
-      if(sectionRoles.has(line)){
-        current = {title:line,role:sectionRoles.get(line),items:[]};
-        sections.push(current);
-        continue;
-      }
-
-      if(!current){
-        current = {title:'', items:[]};
-        sections.push(current);
-      }
-
-      current.items.push({type:'line', text:line});
-    }
-
-    const renderSnapshot = (items) => {
-      const rows = items
-        .filter(x=>x.type==='line')
-        .map(x=>`<div class="ai-snapshot-row">${inlineFormat(x.text)}</div>`)
-        .join('');
-      return `<div class="ai-snapshot-grid">${rows}</div>`;
-    };
-
-    const renderAggregation = (items) => {
-      const cards = [];
-      let card = null;
-
-      for(const item of items){
-        if(item.type==='blank') continue;
-        const text=item.text;
-
-        if(/^\*\*OPP-\d+/i.test(text)){
-          if(card) cards.push(card);
-          card={title:text, meta:[], reason:[]};
-          continue;
+    tpl.content.querySelectorAll('script,style,iframe,object,embed,form,input,button,textarea,select,link,meta').forEach(el=>el.remove());
+    tpl.content.querySelectorAll('*').forEach(el=>{
+      [...el.attributes].forEach(attr=>{
+        const n=attr.name.toLowerCase();
+        const v=String(attr.value||'').trim().toLowerCase();
+        if(n.startsWith('on') || n==='style' || (['href','src'].includes(n) && v.startsWith('javascript:'))){
+          el.removeAttribute(attr.name);
         }
+      });
+    });
 
-        if(!card){
-          card={title:'', meta:[], reason:[]};
-        }
-
-        if(text.toLocaleLowerCase().startsWith(t('aiWhyReviewPrefix').toLocaleLowerCase())) card.reason.push(text);
-        else card.meta.push(text);
-      }
-
-      if(card) cards.push(card);
-
-      return `<div class="ai-aggregation-grid">${cards.map(c=>`
-        <article class="ai-aggregation-card">
-          ${c.title?`<h4>${inlineFormat(c.title)}</h4>`:''}
-          ${c.meta.map(x=>`<div class="ai-agg-meta">${inlineFormat(x)}</div>`).join('')}
-          ${c.reason.map(x=>`<div class="ai-agg-reason">${inlineFormat(x)}</div>`).join('')}
-        </article>`).join('')}</div>`;
-    };
-
-    const renderPriority = (items) => {
-      return `<div class="ai-priority-list">${items
-        .filter(x=>x.type==='line')
-        .map(x=>`<div class="ai-priority-row">${inlineFormat(x.text)}</div>`)
-        .join('')}</div>`;
-    };
-
-    const renderPipeline = (items) => {
-      return `<div class="ai-text-block">${items
-        .filter(x=>x.type==='line')
-        .map(x=>`<p>${inlineFormat(x.text)}</p>`)
-        .join('')}</div>`;
-    };
-
-    const renderActions = (items) => {
-      return `<ul class="ai-action-list">${items
-        .filter(x=>x.type==='line')
-        .map(x=>`<li>${inlineFormat(x.text.replace(/^[-•]\s*/,''))}</li>`)
-        .join('')}</ul>`;
-    };
-
-    root.innerHTML = sections.map(section=>{
-      let body='';
-      switch(section.role){
-        case 'dashboard': body=renderSnapshot(section.items); break;
-        case 'attention': body=renderPriority(section.items); break;
-        case 'pipeline': body=renderPipeline(section.items); break;
-        case 'concentration': body=renderPipeline(section.items); break;
-        case 'decisions': body=renderActions(section.items); break;
-        default: body=renderPipeline(section.items);
-      }
-
-      return `<section class="ai-review-section">
-        ${section.title?`<h3>${escapeHtml(section.title)}</h3>`:''}
-        ${body}
-      </section>`;
-    }).join('');
-  }
-
-  async function generateAiReview(){
-    const status=document.getElementById('aiStatus'), btn=document.getElementById('generateAiReview');
-    if(!cfg.aiEndpoint){status.textContent=t('aiNotConfigured');return;}
-    btn.disabled=true; status.textContent=t('aiGenerating');
-    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),cfg.aiTimeoutMs||45000);
-    try{
-      const response=await fetch(cfg.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildAiReviewPayload(calculated())),signal:controller.signal});
-      if(!response.ok){
-        let errorData={};
-        try{ errorData=await response.json(); }catch{}
-        if(response.status===429 && (errorData.code==='DAILY_LIMIT'||errorData.error==='DAILY_LIMIT')){
-          status.textContent=t('aiDailyLimit');
-          return;
-        }
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data=await response.json();
-      const text=data.review ?? data.commentary ?? data.analysis ?? data.text ?? data.output;
-      if(typeof text!=='string'||!text.trim()) throw new Error('No review text returned');
-      renderAiText(text); status.textContent=t('aiGenerated');
-    }catch(err){console.error(err);status.textContent=t('aiError');}
-    finally{clearTimeout(timer);btn.disabled=false;}
+    return `<div class="ai-report-professional">${tpl.innerHTML}</div>`;
   }
 
   function renderActivity(){
