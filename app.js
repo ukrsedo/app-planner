@@ -571,8 +571,7 @@
         <td>${escapeHtml(titleFor(r))}</td>
         <td>${escapeHtml(departmentFor(r))}</td>
         <td>${escapeHtml(r.needByDate||'—')}</td>
-        <td>${escapeHtml(r.requiredStart||'—')}</td>
-        <td>${escapeHtml(timing)}</td>
+        <td><strong>${escapeHtml(timing)}</strong><small>${escapeHtml(r.requiredStart||'—')}</small></td>
         <td>${escapeHtml(t('criticalities')[r.criticality]||r.criticality||'—')}</td>
         <td class="num">${escapeHtml(fmtMoney(r.estimatedValue,r.currency))}</td>
       </tr>`;
@@ -605,20 +604,23 @@
 
         <section class="report-section">
           <h2>${escapeHtml(L.dashboard)}</h2>
-          <div class="dashboard-grid">
-            <div class="dashboard-card">
-              <h3>${escapeHtml(L.planningPosition)}</h3>
-              <div class="table-scroll"><table class="report-table">
-                <thead><tr><th>${escapeHtml(L.metric)}</th><th>${escapeHtml(L.value)}</th></tr></thead>
-                <tbody>${metricRows}</tbody>
-              </table></div>
+          <div class="dashboard-card">
+            <h3>${escapeHtml(L.planningPosition)}</h3>
+            <div class="kpi-grid">
+              ${[
+                [L.total,rows.length],
+                [L.passed,needByPassed],
+                [L.overdue,overdue],
+                [L.required,requiredRows.length],
+                [L.p3160,p3160.length],
+                [L.p6190,p6190.length]
+              ].map(([label,value])=>`<div class="kpi-card"><span>${escapeHtml(label)}</span><strong>${fmtCount(value)}</strong></div>`).join('')}
             </div>
-            <div class="dashboard-card spend-card">
-              <h3>${escapeHtml(L.spend)}</h3>
-              <div class="table-scroll"><table class="report-table">
-                <thead><tr><th>${escapeHtml(L.currency)}</th><th>${escapeHtml(L.value)}</th></tr></thead>
-                <tbody>${spendRows}</tbody>
-              </table></div>
+          </div>
+          <div class="dashboard-card spend-card">
+            <h3>${escapeHtml(L.spend)}</h3>
+            <div class="spend-grid">
+              ${Object.entries(totals).filter(([,v])=>Number(v)!==0).map(([c,v])=>`<div class="spend-item"><span>${escapeHtml(c)}</span><strong>${escapeHtml(fmtMoney(v,c))}</strong></div>`).join('')}
             </div>
           </div>
         </section>
@@ -630,32 +632,39 @@
 
         <section class="report-section">
           <h2>${escapeHtml(L.attention)}</h2>
-          ${pRows?`<div class="table-scroll"><table class="report-table priority-table">
+          ${pRows?`<table class="report-table priority-table">
             <thead><tr>
               <th>${escapeHtml(L.req)}</th><th>${escapeHtml(L.dept)}</th><th>${escapeHtml(L.needBy)}</th>
-              <th>${escapeHtml(L.start)}</th><th>${escapeHtml(L.timing)}</th><th>${escapeHtml(L.criticality)}</th><th>${escapeHtml(L.amount)}</th>
-            </tr></thead><tbody>${pRows}</tbody></table></div>`:`<p>${escapeHtml(L.noPriority)}</p>`}
+              <th>${escapeHtml(L.timing)}</th><th>${escapeHtml(L.criticality)}</th><th>${escapeHtml(L.amount)}</th>
+            </tr></thead><tbody>${pRows}</tbody></table>`:`<p>${escapeHtml(L.noPriority)}</p>`}
           ${aiData?.priorityInterpretation?`<p class="management-note">${escapeHtml(aiData.priorityInterpretation)}</p>`:''}
         </section>
 
         <section class="report-section">
           <h2>${escapeHtml(L.pipeline)}</h2>
-          <div class="table-scroll"><table class="report-table pipeline-table">
-            <thead><tr><th>${escapeHtml(L.window)}</th><th>${escapeHtml(L.count)}</th><th>${escapeHtml(L.interpretation)}</th></tr></thead>
-            <tbody>${pipelineRows}</tbody>
-          </table></div>
+          <div class="pipeline-cards">
+            ${[
+              [L.actionNow,requiredRows.length,aiData?.pipelineInterpretation?.actionNow||''],
+              [L.prep,p3160.length,aiData?.pipelineInterpretation?.days31to60||''],
+              [L.upcoming,p6190.length,aiData?.pipelineInterpretation?.days61to90||'']
+            ].map(([windowLabel,count,interpretation])=>`
+              <div class="pipeline-card">
+                <div class="pipeline-card-head"><strong>${escapeHtml(windowLabel)}</strong><span>${fmtCount(count)}</span></div>
+                <p>${escapeHtml(interpretation)}</p>
+              </div>`).join('')}
+          </div>
         </section>
 
         <section class="report-section">
           <h2>${escapeHtml(L.concentration)}</h2>
           <div class="concentration-grid">
-            <div>
+            <div class="rank-card">
               <h3>${escapeHtml(L.topDepartments)}</h3>
-              <div class="table-scroll"><table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${deptRows}</tbody></table></div>
+              <div class="rank-list">${topDepartments.map(([n,c],i)=>`<div class="rank-row"><span class="rank-no">${i+1}</span><span class="rank-name">${escapeHtml(n)}</span><strong>${fmtCount(c)}</strong></div>`).join('')}</div>
             </div>
-            <div>
+            <div class="rank-card">
               <h3>${escapeHtml(L.topCategories)}</h3>
-              <div class="table-scroll"><table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${catRows}</tbody></table></div>
+              <div class="rank-list">${topCategories.map(([n,c],i)=>`<div class="rank-row"><span class="rank-no">${i+1}</span><span class="rank-name">${escapeHtml(n)}</span><strong>${fmtCount(c)}</strong></div>`).join('')}</div>
             </div>
           </div>
           ${aiData?.concentrationInterpretation?`<p class="management-note">${escapeHtml(aiData.concentrationInterpretation)}</p>`:`<p class="management-note muted">${escapeHtml(L.noConcentration)}</p>`}

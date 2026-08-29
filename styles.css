@@ -488,38 +488,25 @@ html{scroll-behavior:smooth;scroll-padding-top:92px}
 }
 .priority-table{
   table-layout:fixed;
-  min-width:980px;
+  width:100%;
+  min-width:0;
 }
-.priority-table th:nth-child(1){width:19%}
-.priority-table th:nth-child(2){width:13%}
-.priority-table th:nth-child(3){width:12%}
-.priority-table th:nth-child(4){width:13%}
+.priority-table th:nth-child(1){width:23%}
+.priority-table th:nth-child(2){width:14%}
+.priority-table th:nth-child(3){width:13%}
+.priority-table th:nth-child(4){width:18%}
 .priority-table th:nth-child(5){width:12%}
-.priority-table th:nth-child(6){width:11%}
-.priority-table th:nth-child(7){width:20%}
-.table-scroll{
+.priority-table th:nth-child(6){width:20%}
+.priority-table small{
   display:block;
-  width:100%;
-  max-width:100%;
-  overflow-x:auto;
-  overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:auto;
-  box-sizing:border-box;
-  padding-bottom:4px;
+  margin-top:3px;
+  color:#687887;
+  font-size:11px;
+  font-weight:400;
 }
-.pipeline-table{
-  table-layout:fixed;
-  width:100%;
-  min-width:720px;
-}
-.pipeline-table th:nth-child(1){width:24%}
-.pipeline-table th:nth-child(2){width:9%}
-.pipeline-table th:nth-child(3){width:67%}
-.pipeline-table td:nth-child(3){
-  white-space:normal;
+.priority-table td,
+.priority-table th{
   overflow-wrap:anywhere;
-  word-break:normal;
 }
 .management-summary{
   padding:18px 20px;
@@ -586,4 +573,161 @@ html{scroll-behavior:smooth;scroll-padding-top:92px}
 .report-table td,
 .report-table th{
   max-width:none;
+}
+
+
+/* Fit-to-screen executive report layout */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.kpi-card{
+  min-width:0;
+  padding:12px 13px;
+  border:1px solid #dce3e9;
+  border-radius:8px;
+  background:#f8fafc;
+}
+.kpi-card span{
+  display:block;
+  min-height:34px;
+  font-size:12px;
+  line-height:1.3;
+  color:#536678;
+}
+.kpi-card strong{
+  display:block;
+  margin-top:5px;
+  font-size:22px;
+  line-height:1.1;
+  color:#183650;
+  font-variant-numeric:tabular-nums;
+}
+.spend-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.spend-item{
+  min-width:0;
+  padding:12px 13px;
+  border:1px solid #dce3e9;
+  border-radius:8px;
+  background:#fff;
+}
+.spend-item span{
+  display:block;
+  font-size:12px;
+  color:#607080;
+}
+.spend-item strong{
+  display:block;
+  margin-top:4px;
+  font-size:16px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;
+}
+.pipeline-cards{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.pipeline-card{
+  min-width:0;
+  padding:14px;
+  border:1px solid #dce3e9;
+  border-radius:9px;
+  background:#fff;
+}
+.pipeline-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:9px;
+}
+.pipeline-card-head strong{
+  font-size:14px;
+  line-height:1.3;
+}
+.pipeline-card-head span{
+  flex:0 0 auto;
+  min-width:34px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#edf3f7;
+  text-align:center;
+  font-weight:700;
+}
+.pipeline-card p{
+  margin:0;
+  font-size:13px;
+  line-height:1.45;
+  color:#34495d;
+}
+.rank-card{
+  min-width:0;
+  padding:14px;
+  border:1px solid #dce3e9;
+  border-radius:9px;
+  background:#fff;
+}
+.rank-list{
+  display:grid;
+  gap:0;
+}
+.rank-row{
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr) auto;
+  align-items:start;
+  gap:8px;
+  padding:8px 0;
+  border-bottom:1px solid #e5eaee;
+}
+.rank-row:last-child{border-bottom:0}
+.rank-no{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#eef3f7;
+  font-size:11px;
+  font-weight:700;
+}
+.rank-name{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.rank-row strong{
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.dashboard-card{
+  width:100%;
+  max-width:100%;
+}
+.spend-card{
+  margin-top:14px;
+}
+@media (max-width:980px){
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pipeline-cards{grid-template-columns:1fr}
+  .spend-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .priority-table{font-size:12px}
+  .priority-table th,
+  .priority-table td{padding:7px 6px}
+}
+@media (max-width:680px){
+  .kpi-grid,
+  .spend-grid,
+  .concentration-grid{grid-template-columns:1fr}
+  .priority-table{
+    display:block;
+    overflow-x:auto;
+    white-space:normal;
+  }
 }
