@@ -411,71 +411,273 @@
     box.innerHTML=`<h3>${escapeHtml(t('aiFactsHeading'))}</h3><pre>${escapeHtml(JSON.stringify(buildAiReviewPayload(rows),null,2))}</pre>`;
   }
 
-  function renderDeterministicAiSummary(rows){
-    const root=document.getElementById('aiDeterministicSummary');
+  function fmtCount(n){
+    return Number(n||0).toLocaleString(lang==='uk'?'uk-UA':lang==='pt'?'pt-PT':'en-US');
+  }
+
+  function fmtMoney(v,c){
+    const n=Number(v||0);
+    return `${c} ${n.toLocaleString(lang==='uk'?'uk-UA':lang==='pt'?'pt-PT':'en-US',{maximumFractionDigits:0})}`;
+  }
+
+  function aiLabels(){
+    return {
+      en:{
+        dashboard:'Executive Planning Dashboard',
+        planningPosition:'Planning position',
+        metric:'Metric',value:'Value',
+        total:'Total requirements',
+        passed:'Need-by date already passed',
+        overdue:'Procurement start overdue',
+        required:'Action required within 30 days',
+        p3160:'Forward pipeline 31–60 days',
+        p6190:'Forward pipeline 61–90 days',
+        spend:'Current planned spend by currency',
+        currency:'Currency',
+        managementSummary:'Management Summary',
+        attention:'Priority Management Attention',
+        req:'Requirement',dept:'Department',needBy:'Need-by',start:'Procurement start',timing:'Timing',criticality:'Criticality',amount:'Value',
+        pipeline:'Forward Procurement Outlook',
+        window:'Window',count:'Count',interpretation:'Management interpretation',
+        actionNow:'Action now (0–30 days)',
+        prep:'Preparation window — 31–60 days',
+        upcoming:'Upcoming pipeline — 61–90 days',
+        concentration:'Demand & Workload Concentration',
+        topDepartments:'Departments with most requirements',
+        topCategories:'Categories with most requirements',
+        name:'Name',requirements:'Requirements',
+        dataReadiness:'Data Readiness',
+        incomplete:'Incomplete planning records',
+        missingValue:'Missing/zero estimated value',
+        decisions:'Management Decisions / Actions',
+        noPriority:'No current priority exceptions were identified from the supplied plan facts.',
+        noConcentration:'No material demand concentration requiring separate management interpretation was identified.'
+      },
+      uk:{
+        dashboard:'Огляд стану плану',
+        planningPosition:'Стан плану',
+        metric:'Показник',value:'Значення',
+        total:'Усього потреб',
+        passed:'Дата потреби вже минула',
+        overdue:'Початок закупівлі прострочено',
+        required:'Дії потрібні протягом 30 днів',
+        p3160:'Майбутній план 31–60 днів',
+        p6190:'Майбутній план 61–90 днів',
+        spend:'Планові витрати за валютами',
+        currency:'Валюта',
+        managementSummary:'Управлінський висновок',
+        attention:'Пріоритетна увага керівництва',
+        req:'Потреба',dept:'Підрозділ',needBy:'Дата потреби',start:'Початок закупівлі',timing:'Строк',criticality:'Критичність',amount:'Вартість',
+        pipeline:'Майбутній план закупівель',
+        window:'Вікно',count:'Кількість',interpretation:'Управлінська інтерпретація',
+        actionNow:'Дії зараз (0–30 днів)',
+        prep:'Підготовче вікно — 31–60 днів',
+        upcoming:'Майбутній план — 61–90 днів',
+        concentration:'Концентрація попиту та навантаження',
+        topDepartments:'Підрозділи з найбільшою кількістю потреб',
+        topCategories:'Категорії з найбільшою кількістю потреб',
+        name:'Назва',requirements:'Кількість потреб',
+        dataReadiness:'Готовність даних',
+        incomplete:'Неповні записи планування',
+        missingValue:'Відсутня/нульова оцінка вартості',
+        decisions:'Управлінські рішення / дії',
+        noPriority:'За наданими даними плану поточних пріоритетних винятків не виявлено.',
+        noConcentration:'Суттєвої концентрації попиту, що потребує окремої управлінської інтерпретації, не виявлено.'
+      },
+      pt:{
+        dashboard:'Painel Executivo do Plano',
+        planningPosition:'Posição do plano',
+        metric:'Indicador',value:'Valor',
+        total:'Total de necessidades',
+        passed:'Data de necessidade já ultrapassada',
+        overdue:'Início da compra em atraso',
+        required:'Ação necessária nos próximos 30 dias',
+        p3160:'Pipeline futuro 31–60 dias',
+        p6190:'Pipeline futuro 61–90 dias',
+        spend:'Despesa planeada por moeda',
+        currency:'Moeda',
+        managementSummary:'Resumo da Gestão',
+        attention:'Atenção Prioritária da Gestão',
+        req:'Necessidade',dept:'Departamento',needBy:'Data de necessidade',start:'Início da compra',timing:'Prazo',criticality:'Criticidade',amount:'Valor',
+        pipeline:'Perspetiva Futura de Compras',
+        window:'Janela',count:'Quantidade',interpretation:'Interpretação da gestão',
+        actionNow:'Ação agora (0–30 dias)',
+        prep:'Janela de preparação — 31–60 dias',
+        upcoming:'Pipeline futuro — 61–90 dias',
+        concentration:'Concentração da Procura e Carga de Trabalho',
+        topDepartments:'Departamentos com mais necessidades',
+        topCategories:'Categorias com mais necessidades',
+        name:'Nome',requirements:'Necessidades',
+        dataReadiness:'Qualidade dos Dados',
+        incomplete:'Registos de planeamento incompletos',
+        missingValue:'Valor estimado em falta/zero',
+        decisions:'Decisões / Ações de Gestão',
+        noPriority:'Não foram identificadas exceções prioritárias atuais nos dados fornecidos.',
+        noConcentration:'Não foi identificada concentração material da procura que exija interpretação separada da gestão.'
+      }
+    }[lang];
+  }
+
+  function priorityRows(rows){
+    const passed=rows.filter(r=>daysBetween(r.needByDate,planDateEl.value)<0);
+    const overdue=rows.filter(r=>r.status==='overdue'&&daysBetween(r.needByDate,planDateEl.value)>=0);
+    const required=rows.filter(r=>r.status==='required');
+
+    const score=r=>(r.criticality==='emergency'?3:r.criticality==='urgent'?2:1)*1e15 + Number(r.estimatedValue||0);
+    const chosen=[...passed,...overdue,...required].sort((a,b)=>score(b)-score(a)||a.daysRemaining-b.daysRemaining);
+    const seen=new Set();
+    return chosen.filter(r=>{
+      const k=r.id||`${r.title}-${r.needByDate}`;
+      if(seen.has(k)) return false;
+      seen.add(k); return true;
+    }).slice(0,6);
+  }
+
+  function renderDeterministicAiSummary(rows, aiData=null){
+    const root=document.getElementById('aiReviewOutput');
     if(!root)return;
+    const L=aiLabels();
 
     const needByPassed=rows.filter(r=>daysBetween(r.needByDate,planDateEl.value)<0).length;
     const overdue=rows.filter(r=>r.status==='overdue'&&daysBetween(r.needByDate,planDateEl.value)>=0).length;
-    const required=rows.filter(r=>r.status==='required').length;
+    const requiredRows=rows.filter(r=>r.status==='required');
     const pipeline=getPipeline90(rows);
-    const p3160=pipeline.days31to60.length;
-    const p6190=pipeline.days61to90.length;
+    const p3160=pipeline.days31to60;
+    const p6190=pipeline.days61to90;
     const totals=rows.reduce((a,r)=>{a[r.currency]=(a[r.currency]||0)+Number(r.estimatedValue||0);return a},{});
+    const next180=rows.filter(r=>r.daysRemaining>=0&&r.daysRemaining<=180);
+    const topDepartments=topCounts(next180,r=>r.department,5).map(([k,count])=>[t('departments')[k],count]);
+    const topCategories=topCounts(next180,r=>r.segment,5).map(([k,count])=>[t('segments')[k],count]);
+    const incomplete=rows.filter(r=>!r.department||!r.segment||!r.buyingChannel||!r.needByDate||!r.criticality||!Number.isFinite(Number(r.estimatedValue))||Number(r.estimatedValue)<=0).length;
+    const missingValue=rows.filter(r=>!Number.isFinite(Number(r.estimatedValue))||Number(r.estimatedValue)<=0).length;
 
-    const labels={
-      en:{title:'Executive Planning Dashboard',total:'Total requirements',passed:'Need-by date already passed',overdue:'Procurement start overdue',required:'Action required within 30 days',p3160:'Forward pipeline 31–60 days',p6190:'Forward pipeline 61–90 days',spend:'Spend by currency'},
-      uk:{title:'Огляд стану плану',total:'Усього потреб',passed:'Дата потреби вже минула',overdue:'Початок закупівлі прострочено',required:'Дії потрібні протягом 30 днів',p3160:'Майбутній план 31–60 днів',p6190:'Майбутній план 61–90 днів',spend:'Витрати за валютами'},
-      pt:{title:'Painel Executivo do Plano',total:'Total de necessidades',passed:'Data de necessidade já ultrapassada',overdue:'Início da compra em atraso',required:'Ação necessária nos próximos 30 dias',p3160:'Pipeline 31–60 dias',p6190:'Pipeline 61–90 dias',spend:'Despesa por moeda'}
-    }[lang];
+    const metricRows=[
+      [L.total,rows.length],
+      [L.passed,needByPassed],
+      [L.overdue,overdue],
+      [L.required,requiredRows.length],
+      [L.p3160,p3160.length],
+      [L.p6190,p6190.length]
+    ].map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td class="num">${fmtCount(v)}</td></tr>`).join('');
 
-    const metrics=[
-      [labels.total,rows.length],
-      [labels.passed,needByPassed],
-      [labels.overdue,overdue],
-      [labels.required,required],
-      [labels.p3160,p3160],
-      [labels.p6190,p6190]
-    ];
-
-    const currencies=Object.entries(totals)
+    const spendRows=Object.entries(totals)
       .filter(([,v])=>Number(v)!==0)
-      .map(([c,v])=>`<div class="review-kpi"><span>${escapeHtml(c)}</span><strong>${escapeHtml(money(v,c))}</strong></div>`)
-      .join('');
+      .map(([c,v])=>`<tr><td>${escapeHtml(c)}</td><td class="num">${escapeHtml(fmtMoney(v,c))}</td></tr>`).join('');
+
+    const pRows=priorityRows(rows).map(r=>{
+      const timing=r.status==='overdue' ? `${Math.abs(Number(r.daysRemaining||0))} ${lang==='uk'?'дн. прострочено':lang==='pt'?'dias em atraso':'days overdue'}`
+        : `${Number(r.daysRemaining||0)} ${lang==='uk'?'дн.':lang==='pt'?'dias':'days'}`;
+      return `<tr>
+        <td>${escapeHtml(titleFor(r))}</td>
+        <td>${escapeHtml(departmentFor(r))}</td>
+        <td>${escapeHtml(r.needByDate||'—')}</td>
+        <td>${escapeHtml(r.requiredStart||'—')}</td>
+        <td>${escapeHtml(timing)}</td>
+        <td>${escapeHtml(t('criticalities')[r.criticality]||r.criticality||'—')}</td>
+        <td class="num">${escapeHtml(fmtMoney(r.estimatedValue,r.currency))}</td>
+      </tr>`;
+    }).join('');
+
+    const pipelineRows=[
+      [L.actionNow,requiredRows.length,aiData?.pipelineInterpretation?.actionNow||''],
+      [L.prep,p3160.length,aiData?.pipelineInterpretation?.days31to60||''],
+      [L.upcoming,p6190.length,aiData?.pipelineInterpretation?.days61to90||'']
+    ].map(([w,c,i])=>`<tr><td>${escapeHtml(w)}</td><td class="num">${fmtCount(c)}</td><td>${escapeHtml(i)}</td></tr>`).join('');
+
+    const deptRows=topDepartments.map(([n,c])=>`<tr><td>${escapeHtml(n)}</td><td class="num">${fmtCount(c)}</td></tr>`).join('');
+    const catRows=topCategories.map(([n,c])=>`<tr><td>${escapeHtml(n)}</td><td class="num">${fmtCount(c)}</td></tr>`).join('');
+
+    const readiness=(incomplete>0||missingValue>0) ? `
+      <div class="report-subsection">
+        <h3>${escapeHtml(L.dataReadiness)}</h3>
+        <table class="report-table compact">
+          <tbody>
+            <tr><td>${escapeHtml(L.incomplete)}</td><td class="num">${fmtCount(incomplete)}</td></tr>
+            <tr><td>${escapeHtml(L.missingValue)}</td><td class="num">${fmtCount(missingValue)}</td></tr>
+          </tbody>
+        </table>
+      </div>` : '';
+
+    const actions=(aiData?.actions||[]).slice(0,4).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
 
     root.innerHTML=`
-      <section class="ai-deterministic-section">
-        <h3>${escapeHtml(labels.title)}</h3>
-        <div class="review-kpi-row">${metrics.map(([label,value])=>`<div class="review-kpi"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`).join('')}</div>
-        <div class="review-sub">${escapeHtml(labels.spend)}</div>
-        <div class="review-kpi-row">${currencies}</div>
-      </section>`;
+      <div class="app-ai-report">
+
+        <section class="report-section">
+          <h2>${escapeHtml(L.dashboard)}</h2>
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <h3>${escapeHtml(L.planningPosition)}</h3>
+              <table class="report-table">
+                <thead><tr><th>${escapeHtml(L.metric)}</th><th>${escapeHtml(L.value)}</th></tr></thead>
+                <tbody>${metricRows}</tbody>
+              </table>
+            </div>
+            <div class="dashboard-card spend-card">
+              <h3>${escapeHtml(L.spend)}</h3>
+              <table class="report-table">
+                <thead><tr><th>${escapeHtml(L.currency)}</th><th>${escapeHtml(L.value)}</th></tr></thead>
+                <tbody>${spendRows}</tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="report-section management-summary">
+          <h2>${escapeHtml(L.managementSummary)}</h2>
+          <p>${escapeHtml(aiData?.managementSummary||'')}</p>
+        </section>
+
+        <section class="report-section">
+          <h2>${escapeHtml(L.attention)}</h2>
+          ${pRows?`<div class="table-scroll"><table class="report-table priority-table">
+            <thead><tr>
+              <th>${escapeHtml(L.req)}</th><th>${escapeHtml(L.dept)}</th><th>${escapeHtml(L.needBy)}</th>
+              <th>${escapeHtml(L.start)}</th><th>${escapeHtml(L.timing)}</th><th>${escapeHtml(L.criticality)}</th><th>${escapeHtml(L.amount)}</th>
+            </tr></thead><tbody>${pRows}</tbody></table></div>`:`<p>${escapeHtml(L.noPriority)}</p>`}
+          ${aiData?.priorityInterpretation?`<p class="management-note">${escapeHtml(aiData.priorityInterpretation)}</p>`:''}
+        </section>
+
+        <section class="report-section">
+          <h2>${escapeHtml(L.pipeline)}</h2>
+          <table class="report-table pipeline-table">
+            <thead><tr><th>${escapeHtml(L.window)}</th><th>${escapeHtml(L.count)}</th><th>${escapeHtml(L.interpretation)}</th></tr></thead>
+            <tbody>${pipelineRows}</tbody>
+          </table>
+        </section>
+
+        <section class="report-section">
+          <h2>${escapeHtml(L.concentration)}</h2>
+          <div class="concentration-grid">
+            <div>
+              <h3>${escapeHtml(L.topDepartments)}</h3>
+              <table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${deptRows}</tbody></table>
+            </div>
+            <div>
+              <h3>${escapeHtml(L.topCategories)}</h3>
+              <table class="report-table compact"><thead><tr><th>${escapeHtml(L.name)}</th><th>${escapeHtml(L.requirements)}</th></tr></thead><tbody>${catRows}</tbody></table>
+            </div>
+          </div>
+          ${aiData?.concentrationInterpretation?`<p class="management-note">${escapeHtml(aiData.concentrationInterpretation)}</p>`:`<p class="management-note muted">${escapeHtml(L.noConcentration)}</p>`}
+          ${readiness}
+        </section>
+
+        <section class="report-section">
+          <h2>${escapeHtml(L.decisions)}</h2>
+          <ol class="decision-list">${actions}</ol>
+        </section>
+      </div>`;
   }
 
   function renderAiText(text){
-    const root=document.getElementById('aiReviewOutput');
-    const raw=String(text||'').trim();
-
-    if(!raw){
-      root.innerHTML=`<div class="review-empty">${escapeHtml(t('aiReviewEmpty'))}</div>`;
-      return;
+    let parsed=null;
+    try{
+      parsed=typeof text==='string'?JSON.parse(text):text;
+    }catch(e){
+      const m=String(text||'').match(/\{[\s\S]*\}/);
+      if(m){ try{ parsed=JSON.parse(m[0]); }catch(_e){} }
     }
-
-    const tpl=document.createElement('template');
-    tpl.innerHTML=raw;
-
-    tpl.content.querySelectorAll('script,style,iframe,object,embed,form,input,button,textarea,select,link,meta').forEach(el=>el.remove());
-    tpl.content.querySelectorAll('*').forEach(el=>{
-      [...el.attributes].forEach(attr=>{
-        const n=attr.name.toLowerCase();
-        const v=String(attr.value||'').trim().toLowerCase();
-        if(n.startsWith('on') || n==='style' || (['href','src'].includes(n) && v.startsWith('javascript:'))){
-          el.removeAttribute(attr.name);
-        }
-      });
-    });
-
-    root.innerHTML=`<div class="ai-report-professional">${tpl.innerHTML}</div>`;
+    renderDeterministicAiSummary(calculated(),parsed||{});
   }
 
   async function generateAiReview(){
