@@ -657,3 +657,5 @@ html{scroll-behavior:smooth;scroll-padding-top:92px}
 .app-ai-report .priority-table{
   min-width:980px;
 }
+
+.field-help{display:block;margin-top:5px;color:#64748b;font-size:12px;line-height:1.35}
